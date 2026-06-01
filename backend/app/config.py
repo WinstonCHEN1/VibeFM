@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     FALLBACK_PLAYLIST_ID: str = ""
 
     PER_USER_QUEUE_LIMIT: int = 10
-    SAME_SONG_COOLDOWN_SEC: int = 1800
+    SAME_SONG_COOLDOWN_SEC: int = 0
     PREFETCH_LEAD_SEC: int = 30
 
     class Config:
