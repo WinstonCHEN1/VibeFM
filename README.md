@@ -4,6 +4,8 @@
 
 一个Vibe Coding的小玩意，效果不错，适合你和朋友闲着没事干的时候一起听听歌。
 
+![](image.png)
+
 ## 架构
 
 ```
@@ -35,9 +37,9 @@ cp .env.example .env
 
 队列空了会从这里随机抽。歌单 URL 末尾的数字就是 ID，例如 `https://music.163.com/#/playlist?id=2829896389` → `2829896389`。
 
-## 二、AlmaLinux VPS 部署（一键脚本）
+## 二、VPS 部署（一键脚本）
 
-不需要备案的海外 VPS，80/443 直接走 Let's Encrypt。
+对于不需要备案的海外 VPS，80/443 直接走 Let's Encrypt。
 
 ```bash
 # 服务器上：
@@ -49,6 +51,8 @@ sudo bash deploy-almalinux.sh fm.example.com
 ```
 
 脚本做的事：装 docker / 开 firewalld 80,443 / 跑 docker compose（含 Caddy 自动 HTTPS）。
+
+我的VPS是Almalinux，如果你是Ubuntu或者Debian啥的，自己适配一下。
 
 如果是tx云之类的国内云服，都是需要域名备案的，自己折腾一下，或者你可以选择内网部署。
 
