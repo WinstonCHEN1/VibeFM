@@ -29,15 +29,17 @@ class NeteaseClient:
             await self._client.aclose()
             self._client = None
 
-    async def _get(self, path: str, **params: Any) -> dict:
+        async def _get(self, path: str, **params: Any) -> dict:
         if self.cookie:
             params.setdefault("cookie", self.cookie)
-        # cache-buster：网易云 API 对相同 url 会缓存
+        # 海外 IP 风控：伪装成大陆 IP 调网易云
+        params.setdefault("realIP", "116.25.146.177")
         params.setdefault("timestamp", random.randint(10**12, 10**13))
         c = await self.client()
         r = await c.get(f"{self.base}{path}", params=params)
         r.raise_for_status()
         return r.json()
+
 
     async def search(self, keyword: str, limit: int = 20) -> list[dict]:
         data = await self._get("/cloudsearch", keywords=keyword, limit=limit)
@@ -54,13 +56,23 @@ class NeteaseClient:
             })
         return out
 
-    async def song_url(self, neid: int) -> Optional[str]:
-        """拿到直链。VIP cookie 决定可用音质。"""
-        data = await self._get("/song/url/v1", id=neid, level="exhigh")
-        items = data.get("data") or []
-        if items and items[0].get("url"):
-            return items[0]["url"]
+        async def song_url(self, neid: int) -> Optional[str]:
+        for level in ("exhigh", "higher", "standard"):
+            try:
+                data = await self._get("/song/url/v1", id=neid, level=level)
+                items = data.get("data") or []
+                if items:
+                    it = items[0]
+                    url = it.get("url")
+                    if url:
+                        if url.startswith("http://"):
+                            url = "https://" + url[len("http://"):]
+                        return url
+                    print(f"[netease] {neid} level={level} no url: fee={it.get('fee')} code={it.get('code')}")
+            except Exception as e:
+                print(f"[netease] {neid} level={level} error: {e}")
         return None
+
 
     async def song_meta(self, neid: int) -> Optional[dict]:
         data = await self._get("/song/detail", ids=str(neid))
