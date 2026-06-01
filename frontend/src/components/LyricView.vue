@@ -24,20 +24,32 @@ async function loadFor(neid) {
   if (!neid) { lines.value = []; noLyric.value = true; return }
   loading.value = true
   noLyric.value = false
-  lines.value = []
-  lineEls.value = []
-  activeIdx.value = -1
-  try {
-    const r = await api.lyric(neid)
-    const parsed = parseLRC(r.lrc || '', r.tlyric || '')
-    lines.value = parsed
-    noLyric.value = parsed.length === 0
-  } catch (e) {
-    noLyric.value = true
-  } finally {
-    loading.value = false
+  // 不立刻清空 lines —— 让旧歌词留着，直到新歌词到位再替换
+  // 这样切歌瞬间 UI 不会闪空白
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await api.lyric(neid)
+      // 若服务端返回空但本地之前有歌词，且不是同一首 → 直接判定无歌词
+      const parsed = parseLRC(r.lrc || '', r.tlyric || '')
+      lines.value = parsed
+      lineEls.value = []
+      activeIdx.value = -1
+      noLyric.value = parsed.length === 0
+      // 拿到了（哪怕是空）就退出，但若 error 字段存在就继续重试
+      if (!r.error) {
+        loading.value = false
+        return
+      }
+    } catch (e) {
+      // 网络错，继续重试
+    }
+    await sleep(400 * (attempt + 1))
   }
+  // 重试都失败：保留旧歌词，仅清 loading
+  loading.value = false
 }
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 
 function tick() {
   if (!radio.current || lines.value.length === 0) return
@@ -94,11 +106,13 @@ const hasLines = computed(() => lines.value.length > 0)
     <div class="row" style="margin-bottom:8px">
       <div class="pix-h">▼ LYRICS</div>
       <span v-if="loading" class="muted" style="margin-left:8px;font-size:13px">loading...</span>
+      <button v-if="!loading && radio.current" class="pix-btn ghost mini" style="margin-left:auto"
+              @click="loadFor(radio.current.neid)" title="重新拉取歌词">↻</button>
     </div>
 
     <div v-if="!hasLines && !loading" class="muted no-ly">
       <span v-if="noLyric">这首没有歌词哦～</span>
-      <span v-else>等一下，找歌词中</span>
+      <span v-else>没拉到歌词，<a href="#" @click.prevent="radio.current && loadFor(radio.current.neid)" style="color:var(--orange-d)">重试</a></span>
     </div>
 
     <div v-else ref="listRef" class="ly-scroll pix-scroll">
@@ -118,6 +132,7 @@ const hasLines = computed(() => lines.value.length > 0)
 
 <style scoped>
 .lyric-card { display: flex; flex-direction: column; }
+.pix-btn.mini { font-size: 9px; padding: 4px 6px; box-shadow: 2px 2px 0 var(--ink); }
 .no-ly {
   text-align: center;
   padding: 30px 0;

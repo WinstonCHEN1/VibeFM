@@ -40,6 +40,7 @@ function toggleMute() {
 function unlockOnInteraction() {
   if (!silentMode.value) return
   silentMode.value = false
+  radio.needUnlock = false
   applyVolume()
   audio.play().catch(() => {})
   removeUnlockListeners()
@@ -59,8 +60,21 @@ function removeUnlockListeners() {
   window.removeEventListener('wheel', unlockOnInteraction)
 }
 
+let currentSig = ''   // neid + started_at，作为去重键
+
 function applySong(song) {
-  if (!song) return
+  if (!song) {
+    currentSig = ''
+    audio.removeAttribute('src')
+    audio.load()
+    return
+  }
+  const sig = `${song.neid}-${song.started_at}`
+  if (sig === currentSig) {
+    // 同一首歌、同一次播放 —— 别人加入引发的 state 重发，不要打断本地播放
+    return
+  }
+  currentSig = sig
   audio.src = song.url
   applyVolume()
   const startedClient = song.started_at - radio.serverOffsetMs
@@ -75,10 +89,9 @@ function applySong(song) {
     applyVolume()
     audio.play().then(() => {
       isPaused.value = false
-      radio.needUnlock = true   // 显示"TAP TO TUNE IN"提示
+      radio.needUnlock = true
       attachUnlockListeners()
     }).catch(() => {
-      // 真彻底播不了
       isPaused.value = true
       radio.needUnlock = true
       attachUnlockListeners()
@@ -86,7 +99,12 @@ function applySong(song) {
   })
 }
 
-function onSongEvent(e) { applySong(e.detail); radio.current = e.detail }
+function onSongEvent(e) {
+  // 总是更新 store 的 current（meta、点歌人、url 等可能微变）
+  radio.current = e.detail
+  // 但播放只在曲目真正切换时重启
+  applySong(e.detail)
+}
 
 function tick() {
   if (radio.current) {
