@@ -61,26 +61,38 @@ function tick() {
   }
 }
 
-function scrollToActive() {
+function scrollToActive(behavior = 'smooth') {
   const list = listRef.value
   const node = lineEls.value[activeIdx.value]
   if (!list || !node) return
-  const target = node.offsetTop - list.clientHeight / 2 + node.clientHeight / 2
-  list.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+  // node.offsetTop 是相对滚动容器内的顶端距离
+  // 想让 node 中线对齐容器中线：scrollTop = nodeTop + nodeH/2 - listH/2
+  const target = node.offsetTop + node.offsetHeight / 2 - list.clientHeight / 2
+  list.scrollTo({ top: Math.max(0, target), behavior })
 }
 
 // 数据加载完 / 当前行变化时，等 DOM 渲染好再滚
+let firstScroll = true
 watch(activeIdx, async () => {
   await nextTick()
-  scrollToActive()
+  // 第一次定位用 instant，后续切歌词用 smooth
+  scrollToActive(firstScroll ? 'auto' : 'smooth')
+  firstScroll = false
 })
 
-// 歌词加载完成（但还没有 active 行）时，先把视图顶到第 0 行
+// 歌词加载完成时，先 instant 定位到第 0 行（容器中央），再立即算 active
 watch(lines, async (val) => {
   if (val.length === 0) return
   await nextTick()
-  if (listRef.value) listRef.value.scrollTop = 0
-  // 立刻算一次 active
+  firstScroll = true
+  if (listRef.value && lineEls.value[0]) {
+    const list = listRef.value
+    const first = lineEls.value[0]
+    list.scrollTo({
+      top: Math.max(0, first.offsetTop + first.offsetHeight / 2 - list.clientHeight / 2),
+      behavior: 'auto',
+    })
+  }
   tick()
 })
 
@@ -144,8 +156,13 @@ const hasLines = computed(() => lines.value.length > 0)
   padding: 0 12px;
   background: var(--bg-soft);
   border: 2px solid var(--ink);
+  position: relative;
 }
-.ly-spacer { height: 90px; }
+.ly-spacer {
+  /* 半个容器高度，保证首/末行也能滚到正中 */
+  height: 110px;
+  flex-shrink: 0;
+}
 .ly-line {
   text-align: center;
   padding: 8px 0;
@@ -177,7 +194,7 @@ const hasLines = computed(() => lines.value.length > 0)
 }
 @media (max-width: 720px) {
   .ly-scroll { height: 180px; }
-  .ly-spacer { height: 70px; }
+  .ly-spacer { height: 90px; }
   .ly-text { font-size: 16px; }
   .ly-line.active .ly-text { font-size: 18px; }
 }
