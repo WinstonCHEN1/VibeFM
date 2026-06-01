@@ -1,0 +1,14 @@
+{$DOMAIN} {
+    encode zstd gzip
+
+    # WebSocket 走同一个 host
+    @ws {
+        path /ws*
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @ws frontend:80
+
+    # 静态站 + /api 都打到 frontend 容器，再由 frontend 内的 nginx 分流
+    reverse_proxy frontend:80
+}

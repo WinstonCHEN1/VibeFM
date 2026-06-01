@@ -1,0 +1,62 @@
+services:
+  netease-api:
+    image: binaryify/netease_cloud_music_api:latest
+    container_name: vibefm-netease-api
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - fmnet
+
+  redis:
+    image: redis:7-alpine
+    container_name: vibefm-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    networks:
+      - fmnet
+
+  backend:
+    build: ./backend
+    container_name: vibefm-backend
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - netease-api
+    environment:
+      - NETEASE_API=http://netease-api:3000
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:////data/fm.db
+      - INVITE_CODES=${INVITE_CODES:-letmein,radio2026}
+      - NETEASE_COOKIE=${NETEASE_COOKIE:-}
+      - SECRET_KEY=${SECRET_KEY:-please-change-me}
+      - FALLBACK_PLAYLIST_ID=${FALLBACK_PLAYLIST_ID:-}
+    volumes:
+      - backend-data:/data
+    expose:
+      - "8000"
+    networks:
+      - fmnet
+
+  frontend:
+    build: ./frontend
+    container_name: vibefm-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    networks:
+      - fmnet
+
+volumes:
+  redis-data:
+  backend-data:
+
+networks:
+  fmnet:
+    driver: bridge

@@ -1,0 +1,30 @@
+# 海外 VPS 上叠在 docker-compose.yml 之上使用：
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# 前提：.env 中 DOMAIN 已设置；域名 A 记录指向本机公网 IP；防火墙放行 80/443。
+#
+# 注意：frontend 容器 8080 端口仍会绑到 0.0.0.0，但你应在云厂商安全组只放 80/443，
+# 这样它实际只在 docker 内网可访问。如想彻底关闭，把 docker-compose.yml 里
+# frontend 的 ports 整段注释，并依赖此 overlay 里的 caddy 入口。
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: vibefm-caddy
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - fmnet
+
+volumes:
+  caddy-data:
+  caddy-config:

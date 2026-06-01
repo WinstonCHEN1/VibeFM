@@ -1,0 +1,173 @@
+@import '@fontsource/press-start-2p/400.css';
+@import '@fontsource/vt323/400.css';
+
+:root {
+  --bg:        #F5EBDC;
+  --bg-card:   #FFF8EC;
+  --bg-soft:   #EFE2CD;
+  --ink:       #3D2E1F;
+  --ink-soft:  #7A5A3A;
+  --ink-mute:  #A86B3D;
+  --orange:    #E8945A;
+  --orange-d:  #D4733E;
+  --green:     #7BA665;
+  --blue:      #9FB7D4;
+  --pink:      #D49F9F;
+  --olive:     #A8C49F;
+  --danger:    #C45A4A;
+
+  --font-pix:  'Press Start 2P', monospace;
+  --font-body: 'VT323', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; margin: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.4;
+  -webkit-font-smoothing: none;
+  image-rendering: pixelated;
+}
+
+button { cursor: pointer; font-family: inherit; }
+
+/* ---------- 像素卡片 ---------- */
+.pix-card {
+  background: var(--bg-card);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 14px 16px;
+}
+.pix-card.tight { padding: 10px 12px; }
+
+/* ---------- 标题 ---------- */
+.pix-h {
+  font-family: var(--font-pix);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--ink);
+}
+.pix-h.sm { font-size: 9px; }
+.pix-h.lg { font-size: 14px; }
+
+/* ---------- 按钮 ---------- */
+.pix-btn {
+  font-family: var(--font-pix);
+  font-size: 9px;
+  background: var(--orange);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 8px 12px;
+  letter-spacing: 1px;
+  transition: transform 0.05s, box-shadow 0.05s;
+}
+.pix-btn:hover { background: var(--orange-d); }
+.pix-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.pix-btn.ghost { background: var(--bg-card); }
+.pix-btn.danger { background: var(--danger); color: var(--bg-card); }
+.pix-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: 3px 3px 0 var(--ink); transform: none; }
+
+/* ---------- 输入 ---------- */
+.pix-input {
+  font-family: var(--font-body);
+  font-size: 18px;
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  padding: 6px 10px;
+  outline: none;
+  width: 100%;
+}
+.pix-input:focus { background: #FFFEF8; }
+
+/* ---------- 进度条 ---------- */
+.bar-track {
+  height: 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: var(--orange);
+  transition: width 0.5s linear;
+}
+
+/* ---------- 头像 ---------- */
+.pix-avatar {
+  width: 28px; height: 28px;
+  border: 2px solid var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-pix);
+  font-size: 9px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.pix-avatar.sm { width: 22px; height: 22px; font-size: 8px; }
+.pix-avatar.lg { width: 36px; height: 36px; font-size: 11px; }
+
+/* ---------- 标签 ---------- */
+.pix-tag {
+  display: inline-block;
+  font-family: var(--font-pix);
+  font-size: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 3px 6px;
+  letter-spacing: 1px;
+}
+.pix-tag.warn { background: var(--orange-d); color: var(--bg-card); }
+
+/* ---------- 滚动条 ---------- */
+.pix-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.pix-scroll::-webkit-scrollbar-track { background: var(--bg-soft); }
+.pix-scroll::-webkit-scrollbar-thumb { background: var(--ink); border: 2px solid var(--bg-soft); }
+
+/* ---------- 通用 ---------- */
+.muted { color: var(--ink-soft); }
+.dim   { color: var(--ink-mute); }
+.row { display: flex; align-items: center; gap: 10px; }
+.spacer { flex: 1; }
+
+/* ---------- 装饰：点阵背景 ---------- */
+.dot-bg {
+  background-image: radial-gradient(var(--ink) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: 0 0;
+  opacity: 0.06;
+}
+
+/* ---------- 装饰：CRT 扫描线（可选） ---------- */
+.crt-overlay {
+  background: repeating-linear-gradient(
+    0deg, rgba(0,0,0,0.04) 0px, rgba(0,0,0,0.04) 1px,
+    transparent 1px, transparent 3px
+  );
+  pointer-events: none;
+}
+
+/* ---------- 像素小动物浮动 ---------- */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.floaty { animation: floaty 2s ease-in-out infinite; }
+
+/* ---------- 唱片旋转 ---------- */
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.spin { animation: spin 8s linear infinite; }
+.spin.paused { animation-play-state: paused; }
+
+/* ---------- 移动端 ---------- */
+@media (max-width: 720px) {
+  .pix-card { padding: 12px; box-shadow: 3px 3px 0 var(--ink); }
+  .pix-btn { padding: 9px 10px; }
+  body { font-size: 16px; }
+}
