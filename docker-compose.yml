@@ -33,6 +33,7 @@ services:
       - DATABASE_URL=sqlite:////data/fm.db
       - INVITE_CODES=${INVITE_CODES:-letmein,radio2026}
       - NETEASE_COOKIE=${NETEASE_COOKIE:-}
+      - NETEASE_REAL_IP=${NETEASE_REAL_IP:-116.25.146.177}
       - SECRET_KEY=${SECRET_KEY:-please-change-me}
       - FALLBACK_PLAYLIST_ID=${FALLBACK_PLAYLIST_ID:-}
     volumes:

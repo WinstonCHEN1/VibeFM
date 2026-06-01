@@ -9,13 +9,37 @@ const radio = useRadioStore()
 const audioRef = ref(null)
 const playProgress = ref(0)
 const isPaused = ref(true)
+const volume = ref(parseFloat(localStorage.getItem('fm_vol') || '0.8'))
+const muted = ref(localStorage.getItem('fm_mute') === '1')
 let progressTimer = null
+
+function applyVolume() {
+  if (!audioRef.value) return
+  audioRef.value.volume = volume.value
+  audioRef.value.muted = muted.value
+}
+
+function onVolumeChange() {
+  applyVolume()
+  localStorage.setItem('fm_vol', String(volume.value))
+  if (muted.value && volume.value > 0) {
+    muted.value = false
+    localStorage.setItem('fm_mute', '0')
+  }
+}
+
+function toggleMute() {
+  muted.value = !muted.value
+  localStorage.setItem('fm_mute', muted.value ? '1' : '0')
+  applyVolume()
+}
 
 function applySong(song) {
   if (!song) return
   requestAnimationFrame(() => {
     if (!audioRef.value) return
     audioRef.value.src = song.url
+    applyVolume()
     const startedClient = song.started_at - radio.serverOffsetMs
     const offsetSec = Math.max(0, (Date.now() - startedClient) / 1000)
     audioRef.value.currentTime = offsetSec
@@ -112,8 +136,20 @@ onUnmounted(() => {
       <button class="pix-btn ghost" style="font-size:8px;padding:6px 8px;margin-left:6px" @click="unlock">CLICK TO PLAY</button>
     </div>
 
-    <div class="row" style="margin-top:14px;gap:8px">
+    <div class="row controls-row">
       <button class="pix-btn ghost" @click="doSkip">≫ SKIP</button>
+      <div class="vol-row">
+        <button class="vol-icon-btn" @click="toggleMute" :title="muted ? '取消静音' : '静音'">
+          <span v-if="muted || volume === 0">×</span>
+          <span v-else-if="volume < 0.34">▎</span>
+          <span v-else-if="volume < 0.67">▍</span>
+          <span v-else>▌</span>
+        </button>
+        <input type="range" min="0" max="1" step="0.01" v-model.number="volume"
+               @input="onVolumeChange" class="vol-slider"
+               :class="{ muted: muted }"/>
+        <span class="vol-num">{{ muted ? '--' : Math.round(volume * 100) }}</span>
+      </div>
     </div>
 
     <audio ref="audioRef" style="display:none" crossorigin="anonymous"/>
@@ -168,9 +204,68 @@ onUnmounted(() => {
 }
 .np-artist { font-size: 18px; color: var(--ink-soft); margin-top: 2px; }
 
+.controls-row {
+  margin-top: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.vol-icon-btn {
+  font-family: var(--font-pix);
+  font-size: 14px;
+  width: 30px; height: 30px;
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+.vol-icon-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+.vol-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 130px; height: 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  outline: none; cursor: pointer;
+  padding: 0;
+}
+.vol-slider.muted { opacity: 0.45; }
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 18px;
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.vol-slider::-moz-range-thumb {
+  width: 14px; height: 18px;
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.vol-num {
+  font-family: var(--font-pix);
+  font-size: 9px;
+  width: 28px;
+  text-align: right;
+  color: var(--ink-soft);
+}
+
 @media (max-width: 720px) {
   .np-grid { grid-template-columns: 1fr; gap: 12px; text-align: center; }
   .np-info { text-align: left; }
   .cover-frame { width: 120px; height: 120px; }
+  .vol-row { margin-left: 0; flex: 1 1 100%; }
+  .vol-slider { flex: 1; width: auto; }
 }
 </style>

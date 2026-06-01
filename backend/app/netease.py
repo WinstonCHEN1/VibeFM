@@ -2,9 +2,11 @@
 
 底层是 NeteaseCloudMusicApi（Node 服务）。
 我们在每个请求里挂上用户 cookie，以拿到 VIP 直链。
+海外部署需要带 realIP 伪装成大陆 IP，否则会被风控。
 """
 from __future__ import annotations
 
+import os
 import random
 from typing import Any, Optional
 
@@ -17,6 +19,7 @@ class NeteaseClient:
     def __init__(self) -> None:
         self.base = settings.NETEASE_API.rstrip("/")
         self.cookie = settings.NETEASE_COOKIE
+        self.real_ip = os.getenv("NETEASE_REAL_IP", "116.25.146.177")
         self._client: Optional[httpx.AsyncClient] = None
 
     async def client(self) -> httpx.AsyncClient:
@@ -29,17 +32,17 @@ class NeteaseClient:
             await self._client.aclose()
             self._client = None
 
-        async def _get(self, path: str, **params: Any) -> dict:
+    async def _get(self, path: str, **params: Any) -> dict:
         if self.cookie:
             params.setdefault("cookie", self.cookie)
-        # 海外 IP 风控：伪装成大陆 IP 调网易云
-        params.setdefault("realIP", "116.25.146.177")
+        # 海外 IP 风控：伪装成大陆 IP，否则 cookie 会被强制降级成游客
+        if self.real_ip:
+            params.setdefault("realIP", self.real_ip)
         params.setdefault("timestamp", random.randint(10**12, 10**13))
         c = await self.client()
         r = await c.get(f"{self.base}{path}", params=params)
         r.raise_for_status()
         return r.json()
-
 
     async def search(self, keyword: str, limit: int = 20) -> list[dict]:
         data = await self._get("/cloudsearch", keywords=keyword, limit=limit)
@@ -56,7 +59,8 @@ class NeteaseClient:
             })
         return out
 
-        async def song_url(self, neid: int) -> Optional[str]:
+    async def song_url(self, neid: int) -> Optional[str]:
+        """拿到直链。先试 VIP 高音质，逐级降级；http 升级 https。"""
         for level in ("exhigh", "higher", "standard"):
             try:
                 data = await self._get("/song/url/v1", id=neid, level=level)
@@ -68,11 +72,14 @@ class NeteaseClient:
                         if url.startswith("http://"):
                             url = "https://" + url[len("http://"):]
                         return url
-                    print(f"[netease] {neid} level={level} no url: fee={it.get('fee')} code={it.get('code')}")
+                    reason = (it.get("freeTrialPrivilege") or {}).get("cannotListenReason")
+                    print(
+                        f"[netease] {neid} level={level} no url: "
+                        f"fee={it.get('fee')} code={it.get('code')} reason={reason}"
+                    )
             except Exception as e:
                 print(f"[netease] {neid} level={level} error: {e}")
         return None
-
 
     async def song_meta(self, neid: int) -> Optional[dict]:
         data = await self._get("/song/detail", ids=str(neid))

@@ -74,6 +74,11 @@ class Radio:
         if not meta:
             return False, "找不到这首歌"
 
+        # 预检直链：拿不到就别让它进队列，否则切到它的时候只能默默 skip
+        test_url = await netease.song_url(neid)
+        if not test_url:
+            return False, "这首歌当前不可播放（版权 / 地区 / 试听限制），换一首吧"
+
         item = {
             "neid": neid,
             "title": meta["title"],
