@@ -102,7 +102,8 @@ async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
             if data.get("type") == "chat":
                 content = (data.get("content") or "").strip()
                 if content:
-                    await hub.broadcast("chat", {"nick": user.nickname, "content": content[:200]})
+                    saved = await radio.push_chat(user.nickname, content[:200])
+                    await hub.broadcast("chat", saved)
             elif data.get("type") == "ping":
                 await ws.send_text(json.dumps({"type": "pong", "t": data.get("t")}))
     except WebSocketDisconnect:

@@ -187,11 +187,26 @@ class Radio:
             "queue": await self.queue_list(),
             "online": hub.online_count(),
             "online_list": hub.online_list(),
+            "chat_history": await self.chat_history(),
             "server_time": int(time.time() * 1000),
         }
 
     async def broadcast_queue(self) -> None:
         await hub.broadcast("queue_update", await self.queue_list())
+
+    async def push_chat(self, nick: str, content: str) -> dict:
+        """写入聊天历史，返回带 ts 的消息体。"""
+        assert self.redis is not None
+        msg = {"nick": nick, "content": content, "ts": int(time.time() * 1000)}
+        await self.redis.rpush(CHAT_KEY, json.dumps(msg, ensure_ascii=False))
+        await self.redis.ltrim(CHAT_KEY, -CHAT_HISTORY_LIMIT, -1)
+        return msg
+
+    async def chat_history(self, limit: int = 20) -> list[dict]:
+        if not self.redis:
+            return []
+        items = await self.redis.lrange(CHAT_KEY, -limit, -1)
+        return [json.loads(x) for x in items]
 
 
 radio = Radio()

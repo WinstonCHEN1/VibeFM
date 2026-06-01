@@ -39,6 +39,9 @@ export const useRadioStore = defineStore('radio', {
         this.queue = msg.data.queue
         this.onlineList = msg.data.online_list || []
         this.serverOffsetMs = msg.data.server_time - Date.now()
+        // 历史聊天打标记 history:true，前端用来画分隔线
+        const history = (msg.data.chat_history || []).map(c => ({ ...c, history: true }))
+        this.chats = history
         this._emit('songChange', msg.data.current)
       } else if (msg.type === 'song_change') {
         this._emit('songChange', msg.data)
@@ -52,8 +55,8 @@ export const useRadioStore = defineStore('radio', {
           this.onlineList = msg.data.list || []
         }
       } else if (msg.type === 'chat') {
-        this.chats.push(msg.data)
-        if (this.chats.length > 100) this.chats.splice(0, this.chats.length - 100)
+        this.chats.push({ ...msg.data, history: false })
+        if (this.chats.length > 200) this.chats.splice(0, this.chats.length - 200)
       }
     },
     _emit(name, data) {
