@@ -5,7 +5,6 @@ import { api } from '../api.js'
 import { fmtTime, pickColor } from '../utils.js'
 import { ensureAudio, ensureAnalyser, resumeCtx } from '../audio.js'
 import Avatar from './Avatar.vue'
-import WaveBars from './WaveBars.vue'
 
 const radio = useRadioStore()
 const playProgress = ref(0)
@@ -124,9 +123,6 @@ onUnmounted(() => {
           <div class="row" style="justify-content:space-between;font-size:14px;margin-top:4px;color:var(--ink-soft)">
             <span>{{ fmtTime(playProgress) }}</span>
             <span>{{ fmtTime(radio.current.duration) }}</span>
-          </div>
-          <div style="margin-top:10px">
-            <WaveBars :bars="28" :height="40"/>
           </div>
         </div>
       </div>

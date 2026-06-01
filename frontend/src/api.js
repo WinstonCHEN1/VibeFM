@@ -39,4 +39,8 @@ export const api = {
   enqueue: (neid) => request('/api/queue', { method: 'POST', body: JSON.stringify({ neid }) }),
   skip: () => request('/api/skip', { method: 'POST' }),
   lyric: (neid) => request(`/api/lyric/${neid}`),
+  searchUsers: (q) => request(`/api/playlist/search-users?q=${encodeURIComponent(q)}`),
+  searchPlaylists: (q) => request(`/api/playlist/search?q=${encodeURIComponent(q)}`),
+  userPlaylists: (uid) => request(`/api/playlist/by-user/${uid}`),
+  playlistTracks: (pid) => request(`/api/playlist/${pid}/tracks`),
 }

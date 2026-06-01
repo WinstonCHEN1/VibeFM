@@ -6,7 +6,7 @@ import LoginCard from './components/LoginCard.vue'
 import NowPlaying from './components/NowPlaying.vue'
 import LyricView from './components/LyricView.vue'
 import Queue from './components/Queue.vue'
-import SearchPanel from './components/SearchPanel.vue'
+import BrowsePanel from './components/BrowsePanel.vue'
 import ChatPanel from './components/ChatPanel.vue'
 import OnlineList from './components/OnlineList.vue'
 import AudiencePanel from './components/AudiencePanel.vue'
@@ -54,7 +54,7 @@ onUnmounted(() => { radio.closeSocket() })
         <div class="col-left">
           <NowPlaying/>
           <LyricView/>
-          <SearchPanel/>
+          <BrowsePanel/>
         </div>
         <div class="col-right">
           <Queue/>

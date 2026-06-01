@@ -10,6 +10,7 @@ from .netease import netease
 from .radio import radio
 from .routers import auth as auth_router
 from .routers import lyric as lyric_router
+from .routers import playlist as playlist_router
 from .routers import queue as queue_router
 from .routers import search as search_router
 from .ws import hub
@@ -38,6 +39,7 @@ app.include_router(auth_router.router)
 app.include_router(search_router.router)
 app.include_router(queue_router.router)
 app.include_router(lyric_router.router)
+app.include_router(playlist_router.router)
 
 
 @app.get("/api/health")

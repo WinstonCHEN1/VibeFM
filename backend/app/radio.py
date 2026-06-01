@@ -23,6 +23,8 @@ from .ws import hub
 QUEUE_KEY = "fm:queue"
 RECENT_KEY = "fm:recent"
 STATE_KEY = "fm:state"
+CHAT_KEY = "fm:chat"
+CHAT_HISTORY_LIMIT = 50
 
 
 class Radio:

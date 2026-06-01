@@ -162,5 +162,66 @@ class NeteaseClient:
         data = await self._request("/playlist/track/all", id=playlist_id, limit=200)
         return [s["id"] for s in (data.get("songs") or [])]
 
+    async def search_users(self, keyword: str, limit: int = 12) -> list[dict]:
+        """type=1002 搜用户（公开账号）"""
+        data = await self._request("/search", keywords=keyword, type=1002, limit=limit)
+        users = (data.get("result") or {}).get("userprofiles") or []
+        out = []
+        for u in users:
+            out.append({
+                "uid": u.get("userId"),
+                "nickname": u.get("nickname", ""),
+                "avatar": u.get("avatarUrl", ""),
+                "signature": u.get("signature", ""),
+            })
+        return out
+
+    async def search_playlists(self, keyword: str, limit: int = 20) -> list[dict]:
+        """type=1000 搜公开歌单"""
+        data = await self._request("/search", keywords=keyword, type=1000, limit=limit)
+        items = (data.get("result") or {}).get("playlists") or []
+        out = []
+        for p in items:
+            out.append({
+                "id": p.get("id"),
+                "name": p.get("name", ""),
+                "cover": p.get("coverImgUrl", ""),
+                "track_count": p.get("trackCount", 0),
+                "play_count": p.get("playCount", 0),
+                "creator": (p.get("creator") or {}).get("nickname", ""),
+            })
+        return out
+
+    async def user_playlists(self, uid: int, limit: int = 50) -> list[dict]:
+        """拿一个用户公开的歌单"""
+        data = await self._request("/user/playlist", uid=uid, limit=limit)
+        items = data.get("playlist") or []
+        out = []
+        for p in items:
+            out.append({
+                "id": p.get("id"),
+                "name": p.get("name", ""),
+                "cover": p.get("coverImgUrl", ""),
+                "track_count": p.get("trackCount", 0),
+                "play_count": p.get("playCount", 0),
+                "creator": (p.get("creator") or {}).get("nickname", ""),
+            })
+        return out
+
+    async def playlist_tracks(self, playlist_id: int, limit: int = 100) -> list[dict]:
+        """歌单里的所有曲目（不是 ID 列表，含元数据）"""
+        data = await self._request("/playlist/track/all", id=playlist_id, limit=limit)
+        out = []
+        for s in (data.get("songs") or []):
+            out.append({
+                "neid": s["id"],
+                "title": s.get("name", ""),
+                "artist": ", ".join(a.get("name", "") for a in s.get("ar", [])),
+                "album": (s.get("al") or {}).get("name", ""),
+                "duration": int((s.get("dt") or 0) / 1000),
+                "cover_url": (s.get("al") or {}).get("picUrl", ""),
+            })
+        return out
+
 
 netease = NeteaseClient()
