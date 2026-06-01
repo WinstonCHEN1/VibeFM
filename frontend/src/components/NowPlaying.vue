@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRadioStore } from '../stores/radio.js'
 import { api } from '../api.js'
 import { fmtTime, pickColor } from '../utils.js'
-import { ensureAudio, ensureAnalyser, resumeCtx } from '../audio.js'
+import { ensureAudio } from '../audio.js'
 import Avatar from './Avatar.vue'
 
 const radio = useRadioStore()
@@ -11,13 +11,14 @@ const playProgress = ref(0)
 const isPaused = ref(true)
 const volume = ref(parseFloat(localStorage.getItem('fm_vol') || '0.8'))
 const muted = ref(localStorage.getItem('fm_mute') === '1')
+const silentMode = ref(false)   // 静音绕过自动播放策略
 let progressTimer = null
 
 const audio = ensureAudio()
 
 function applyVolume() {
   audio.volume = volume.value
-  audio.muted = muted.value
+  audio.muted = muted.value || silentMode.value
 }
 
 function onVolumeChange() {
@@ -35,6 +36,29 @@ function toggleMute() {
   applyVolume()
 }
 
+// 一旦用户做了任何交互，立刻解除静音，并真正开始播
+function unlockOnInteraction() {
+  if (!silentMode.value) return
+  silentMode.value = false
+  applyVolume()
+  audio.play().catch(() => {})
+  removeUnlockListeners()
+}
+
+function attachUnlockListeners() {
+  window.addEventListener('pointerdown', unlockOnInteraction, { once: true, passive: true })
+  window.addEventListener('keydown', unlockOnInteraction, { once: true, passive: true })
+  window.addEventListener('touchstart', unlockOnInteraction, { once: true, passive: true })
+  window.addEventListener('wheel', unlockOnInteraction, { once: true, passive: true })
+}
+
+function removeUnlockListeners() {
+  window.removeEventListener('pointerdown', unlockOnInteraction)
+  window.removeEventListener('keydown', unlockOnInteraction)
+  window.removeEventListener('touchstart', unlockOnInteraction)
+  window.removeEventListener('wheel', unlockOnInteraction)
+}
+
 function applySong(song) {
   if (!song) return
   audio.src = song.url
@@ -45,11 +69,20 @@ function applySong(song) {
   audio.play().then(() => {
     isPaused.value = false
     radio.needUnlock = false
-    ensureAnalyser()
-    resumeCtx()
   }).catch(() => {
-    radio.needUnlock = true
-    isPaused.value = true
+    // 用户没交互过 → 静音重试，浏览器允许静音自动播放
+    silentMode.value = true
+    applyVolume()
+    audio.play().then(() => {
+      isPaused.value = false
+      radio.needUnlock = true   // 显示"TAP TO TUNE IN"提示
+      attachUnlockListeners()
+    }).catch(() => {
+      // 真彻底播不了
+      isPaused.value = true
+      radio.needUnlock = true
+      attachUnlockListeners()
+    })
   })
 }
 
@@ -63,12 +96,8 @@ function tick() {
 }
 
 function unlock() {
-  audio.play().then(() => {
-    radio.needUnlock = false
-    isPaused.value = false
-    ensureAnalyser()
-    resumeCtx()
-  }).catch(()=>{})
+  unlockOnInteraction()
+  if (audio.paused) audio.play().catch(()=>{})
 }
 
 async function doSkip() {
@@ -90,6 +119,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('fm:songChange', onSongEvent)
   clearInterval(progressTimer)
+  removeUnlockListeners()
 })
 </script>
 
@@ -133,10 +163,9 @@ onUnmounted(() => {
       <div style="margin-top:8px;font-size:15px">电台准备中… 点首歌让它转起来</div>
     </div>
 
-    <div v-if="radio.needUnlock" style="margin-top:12px;padding:10px;background:#FAEEDA;border:2px dashed var(--ink)">
-      <span class="pix-h sm">! AUTOPLAY BLOCKED</span>
-      <span style="margin-left:10px">浏览器拦截了自动播放，</span>
-      <button class="pix-btn ghost" style="font-size:8px;padding:6px 8px;margin-left:6px" @click="unlock">CLICK TO PLAY</button>
+    <div v-if="radio.needUnlock" class="unlock-banner" @click="unlock">
+      <span class="pix-h sm">▶ TAP ANYWHERE TO TUNE IN</span>
+      <span style="margin-left:10px;font-size:14px;color:var(--ink-soft)">点屏幕任意位置开声</span>
     </div>
 
     <div class="row controls-row">
@@ -204,6 +233,27 @@ onUnmounted(() => {
   font-weight: bold; word-break: break-word;
 }
 .np-artist { font-size: 18px; color: var(--ink-soft); margin-top: 2px; }
+
+.unlock-banner {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  animation: pulse-banner 1.6s ease-in-out infinite;
+}
+.unlock-banner:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+@keyframes pulse-banner {
+  0%, 100% { background: var(--orange); }
+  50%      { background: var(--orange-d); }
+}
 
 .controls-row {
   margin-top: 14px;
