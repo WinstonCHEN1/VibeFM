@@ -36,3 +36,10 @@ class ChatMessage(SQLModel, table=True):
     nickname: str
     content: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LyricCache(SQLModel, table=True):
+    neid: int = Field(primary_key=True)
+    lrc: str = ""
+    tlyric: str = ""
+    cached_at: datetime = Field(default_factory=datetime.utcnow)

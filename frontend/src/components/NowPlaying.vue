@@ -3,20 +3,22 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRadioStore } from '../stores/radio.js'
 import { api } from '../api.js'
 import { fmtTime, pickColor } from '../utils.js'
+import { ensureAudio, ensureAnalyser, resumeCtx } from '../audio.js'
 import Avatar from './Avatar.vue'
+import WaveBars from './WaveBars.vue'
 
 const radio = useRadioStore()
-const audioRef = ref(null)
 const playProgress = ref(0)
 const isPaused = ref(true)
 const volume = ref(parseFloat(localStorage.getItem('fm_vol') || '0.8'))
 const muted = ref(localStorage.getItem('fm_mute') === '1')
 let progressTimer = null
 
+const audio = ensureAudio()
+
 function applyVolume() {
-  if (!audioRef.value) return
-  audioRef.value.volume = volume.value
-  audioRef.value.muted = muted.value
+  audio.volume = volume.value
+  audio.muted = muted.value
 }
 
 function onVolumeChange() {
@@ -36,36 +38,38 @@ function toggleMute() {
 
 function applySong(song) {
   if (!song) return
-  requestAnimationFrame(() => {
-    if (!audioRef.value) return
-    audioRef.value.src = song.url
-    applyVolume()
-    const startedClient = song.started_at - radio.serverOffsetMs
-    const offsetSec = Math.max(0, (Date.now() - startedClient) / 1000)
-    audioRef.value.currentTime = offsetSec
-    audioRef.value.play().then(() => {
-      isPaused.value = false
-      radio.needUnlock = false
-    }).catch(() => {
-      radio.needUnlock = true
-      isPaused.value = true
-    })
+  audio.src = song.url
+  applyVolume()
+  const startedClient = song.started_at - radio.serverOffsetMs
+  const offsetSec = Math.max(0, (Date.now() - startedClient) / 1000)
+  try { audio.currentTime = offsetSec } catch (_) {}
+  audio.play().then(() => {
+    isPaused.value = false
+    radio.needUnlock = false
+    ensureAnalyser()
+    resumeCtx()
+  }).catch(() => {
+    radio.needUnlock = true
+    isPaused.value = true
   })
 }
 
 function onSongEvent(e) { applySong(e.detail); radio.current = e.detail }
 
 function tick() {
-  if (audioRef.value && radio.current) {
-    playProgress.value = audioRef.value.currentTime
-    isPaused.value = audioRef.value.paused
+  if (radio.current) {
+    playProgress.value = audio.currentTime
+    isPaused.value = audio.paused
   }
 }
 
 function unlock() {
-  if (audioRef.value) {
-    audioRef.value.play().then(() => { radio.needUnlock = false; isPaused.value = false }).catch(()=>{})
-  }
+  audio.play().then(() => {
+    radio.needUnlock = false
+    isPaused.value = false
+    ensureAnalyser()
+    resumeCtx()
+  }).catch(()=>{})
 }
 
 async function doSkip() {
@@ -121,6 +125,9 @@ onUnmounted(() => {
             <span>{{ fmtTime(playProgress) }}</span>
             <span>{{ fmtTime(radio.current.duration) }}</span>
           </div>
+          <div style="margin-top:10px">
+            <WaveBars :bars="28" :height="40"/>
+          </div>
         </div>
       </div>
     </div>
@@ -151,8 +158,6 @@ onUnmounted(() => {
         <span class="vol-num">{{ muted ? '--' : Math.round(volume * 100) }}</span>
       </div>
     </div>
-
-    <audio ref="audioRef" style="display:none" crossorigin="anonymous"/>
   </div>
 </template>
 

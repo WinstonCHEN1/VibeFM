@@ -38,4 +38,5 @@ export const api = {
   search: (q) => request(`/api/search?q=${encodeURIComponent(q)}`),
   enqueue: (neid) => request('/api/queue', { method: 'POST', body: JSON.stringify({ neid }) }),
   skip: () => request('/api/skip', { method: 'POST' }),
+  lyric: (neid) => request(`/api/lyric/${neid}`),
 }

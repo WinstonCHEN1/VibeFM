@@ -4,6 +4,7 @@ import { auth } from './api.js'
 import { useRadioStore } from './stores/radio.js'
 import LoginCard from './components/LoginCard.vue'
 import NowPlaying from './components/NowPlaying.vue'
+import LyricView from './components/LyricView.vue'
 import Queue from './components/Queue.vue'
 import SearchPanel from './components/SearchPanel.vue'
 import ChatPanel from './components/ChatPanel.vue'
@@ -52,6 +53,7 @@ onUnmounted(() => { radio.closeSocket() })
       <section class="main-grid">
         <div class="col-left">
           <NowPlaying/>
+          <LyricView/>
           <SearchPanel/>
         </div>
         <div class="col-right">
