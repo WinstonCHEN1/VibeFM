@@ -1,8 +1,11 @@
 """网易云客户端封装。
 
 底层是 NeteaseCloudMusicApi（Node 服务）。
-我们在每个请求里挂上用户 cookie，以拿到 VIP 直链。
-海外部署需要带 realIP 伪装成大陆 IP，否则会被风控。
+
+要点：
+- cookie 通过 POST body 传递（避免 query 编码截断 MUSIC_U 中的 % 字符）
+- realIP 伪装大陆出口（海外 VPS 必须）
+- song/url 双策略：优先 v1 高音质，回退到老版 br=999000/320000
 """
 from __future__ import annotations
 
@@ -32,20 +35,29 @@ class NeteaseClient:
             await self._client.aclose()
             self._client = None
 
-    async def _get(self, path: str, **params: Any) -> dict:
+    async def _request(self, path: str, **params: Any) -> dict:
+        """统一请求：用 POST + form body，cookie 不走 URL 避免编码丢失。"""
+        body: dict[str, Any] = {}
         if self.cookie:
-            params.setdefault("cookie", self.cookie)
-        # 海外 IP 风控：伪装成大陆 IP，否则 cookie 会被强制降级成游客
+            body["cookie"] = self.cookie
         if self.real_ip:
-            params.setdefault("realIP", self.real_ip)
-        params.setdefault("timestamp", random.randint(10**12, 10**13))
+            body["realIP"] = self.real_ip
+        body["timestamp"] = random.randint(10**12, 10**13)
+        body.update(params)
+
         c = await self.client()
-        r = await c.get(f"{self.base}{path}", params=params)
+        r = await c.post(f"{self.base}{path}", data=body)
         r.raise_for_status()
         return r.json()
 
+    # 兼容旧名
+    _get = _request
+
+    async def login_status(self) -> dict:
+        return await self._request("/login/status")
+
     async def search(self, keyword: str, limit: int = 20) -> list[dict]:
-        data = await self._get("/cloudsearch", keywords=keyword, limit=limit)
+        data = await self._request("/cloudsearch", keywords=keyword, limit=limit)
         songs = (data.get("result") or {}).get("songs") or []
         out = []
         for s in songs:
@@ -60,29 +72,70 @@ class NeteaseClient:
         return out
 
     async def song_url(self, neid: int) -> Optional[str]:
-        """拿到直链。先试 VIP 高音质，逐级降级；http 升级 https。"""
+        """两条策略尝试拿直链：
+
+        1. /song/url/v1 + level=exhigh→higher→standard（带 VIP 鉴权）
+        2. 老接口 /song/url + br=999000→320000→128000（容错更好）
+
+        取到 url 立即返回，并把 http 升级为 https。
+        """
+        # 策略 A：v1 + level
         for level in ("exhigh", "higher", "standard"):
-            try:
-                data = await self._get("/song/url/v1", id=neid, level=level)
-                items = data.get("data") or []
-                if items:
-                    it = items[0]
-                    url = it.get("url")
-                    if url:
-                        if url.startswith("http://"):
-                            url = "https://" + url[len("http://"):]
-                        return url
-                    reason = (it.get("freeTrialPrivilege") or {}).get("cannotListenReason")
-                    print(
-                        f"[netease] {neid} level={level} no url: "
-                        f"fee={it.get('fee')} code={it.get('code')} reason={reason}"
-                    )
-            except Exception as e:
-                print(f"[netease] {neid} level={level} error: {e}")
+            url = await self._try_song_url_v1(neid, level)
+            if url:
+                return url
+
+        # 策略 B：老接口 + br
+        for br in (999000, 320000, 128000):
+            url = await self._try_song_url_legacy(neid, br)
+            if url:
+                return url
+
         return None
 
+    async def _try_song_url_v1(self, neid: int, level: str) -> Optional[str]:
+        try:
+            data = await self._request("/song/url/v1", id=neid, level=level)
+            items = data.get("data") or []
+            if items:
+                it = items[0]
+                url = it.get("url")
+                if url:
+                    return self._upgrade(url)
+                reason = (it.get("freeTrialPrivilege") or {}).get("cannotListenReason")
+                print(
+                    f"[netease] v1 {neid} level={level} no url: "
+                    f"fee={it.get('fee')} code={it.get('code')} reason={reason}"
+                )
+        except Exception as e:
+            print(f"[netease] v1 {neid} level={level} error: {e}")
+        return None
+
+    async def _try_song_url_legacy(self, neid: int, br: int) -> Optional[str]:
+        try:
+            data = await self._request("/song/url", id=neid, br=br)
+            items = data.get("data") or []
+            if items:
+                it = items[0]
+                url = it.get("url")
+                if url:
+                    return self._upgrade(url)
+                print(
+                    f"[netease] legacy {neid} br={br} no url: "
+                    f"fee={it.get('fee')} code={it.get('code')}"
+                )
+        except Exception as e:
+            print(f"[netease] legacy {neid} br={br} error: {e}")
+        return None
+
+    @staticmethod
+    def _upgrade(url: str) -> str:
+        if url.startswith("http://"):
+            return "https://" + url[len("http://"):]
+        return url
+
     async def song_meta(self, neid: int) -> Optional[dict]:
-        data = await self._get("/song/detail", ids=str(neid))
+        data = await self._request("/song/detail", ids=str(neid))
         songs = data.get("songs") or []
         if not songs:
             return None
@@ -97,7 +150,7 @@ class NeteaseClient:
         }
 
     async def lyric(self, neid: int) -> dict:
-        data = await self._get("/lyric", id=neid)
+        data = await self._request("/lyric", id=neid)
         return {
             "lrc": (data.get("lrc") or {}).get("lyric", ""),
             "tlyric": (data.get("tlyric") or {}).get("lyric", ""),
@@ -106,7 +159,7 @@ class NeteaseClient:
     async def playlist_track_ids(self, playlist_id: str) -> list[int]:
         if not playlist_id:
             return []
-        data = await self._get("/playlist/track/all", id=playlist_id, limit=200)
+        data = await self._request("/playlist/track/all", id=playlist_id, limit=200)
         return [s["id"] for s in (data.get("songs") or [])]
 
 

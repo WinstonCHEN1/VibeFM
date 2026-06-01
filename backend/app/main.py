@@ -43,6 +43,41 @@ async def health():
     return {"ok": True}
 
 
+@app.get("/api/diag")
+async def diag():
+    """自检：看 cookie / VIP / realIP 是否正确。
+    无鉴权访问，但只暴露不敏感的字段。"""
+    out = {
+        "real_ip": netease.real_ip,
+        "cookie_set": bool(netease.cookie),
+        "cookie_len": len(netease.cookie or ""),
+        "login": None,
+        "test_song_url": None,
+    }
+    try:
+        ls = await netease.login_status()
+        acct = (ls.get("data") or {}).get("account") or {}
+        prof = (ls.get("data") or {}).get("profile") or {}
+        out["login"] = {
+            "logged_in": bool(acct.get("id")),
+            "user_id": acct.get("id"),
+            "nickname": prof.get("nickname"),
+            "vip_type": acct.get("vipType"),
+        }
+    except Exception as e:
+        out["login_error"] = f"{type(e).__name__}: {e}"
+
+    try:
+        # 用一个非常通用的 ID 做直链解析测试：周杰伦 - 晴天 (186016)
+        test_url = await netease.song_url(186016)
+        out["test_song_url"] = bool(test_url)
+        if not test_url:
+            out["test_song_url_hint"] = "解析失败：cookie/VIP/realIP 有问题，看 docker compose logs backend"
+    except Exception as e:
+        out["test_song_url_error"] = f"{type(e).__name__}: {e}"
+    return out
+
+
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
     user = user_from_token(token)
