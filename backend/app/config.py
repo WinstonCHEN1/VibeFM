@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "please-change-me"
     FALLBACK_PLAYLIST_ID: str = ""
 
-    PER_USER_QUEUE_LIMIT: int = 2
+    PER_USER_QUEUE_LIMIT: int = 10
     SAME_SONG_COOLDOWN_SEC: int = 1800
     PREFETCH_LEAD_SEC: int = 30
 
