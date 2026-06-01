@@ -1,8 +1,8 @@
 # Vibe FM · by cg
 
-一个朋友圈级的 24h Web 电台，音乐源自网易云（用你的 VIP cookie 解析），登录用户可点歌排队。像素风界面，温暖米色调。
+一个一键部署、朋友圈级别的 24h Web 电台，音乐源自网易云（用你的 cookie 解析），登录用户可点歌排队。像素风界面，温暖米色调。
 
-> 仅限私人小圈子使用，请勿公开传播或商用。
+一个Vibe Coding的小玩意，效果不错，适合你和朋友闲着没事干的时候一起听听歌。
 
 ## 架构
 
@@ -41,7 +41,7 @@ cp .env.example .env
 
 ```bash
 # 服务器上：
-cd /opt
+cd /opt # 或者随便什么目录，你开心就好
 git clone <你的仓库> vibe-fm
 cd vibe-fm
 sudo bash deploy-almalinux.sh fm.example.com
@@ -50,7 +50,7 @@ sudo bash deploy-almalinux.sh fm.example.com
 
 脚本做的事：装 docker / 开 firewalld 80,443 / 跑 docker compose（含 Caddy 自动 HTTPS）。
 
-### 安全组提醒
+如果是tx云之类的国内云服，都是需要域名备案的，自己折腾一下，或者你可以选择内网部署。
 
 云厂商安全组要单独再放 80/443 入站。其他端口（8000、6379、3000）一律不要暴露——只在 docker 网络内通。
 
@@ -59,7 +59,7 @@ sudo bash deploy-almalinux.sh fm.example.com
 ```
 vibe-fm/
 ├── docker-compose.yml         # 本地开发（暴露 8080）
-├── docker-compose.prod.yml    # 海外 VPS overlay（叠 Caddy + 80/443）
+├── docker-compose.prod.yml    # VPS overlay（叠 Caddy + 80/443）
 ├── .env.example
 ├── run.sh                     # 本地一键起
 ├── deploy-almalinux.sh        # AlmaLinux 一键部署
@@ -89,10 +89,19 @@ vibe-fm/
                                #   LoginCard / OnlineList / CatMascot / Avatar
 ```
 
-## 四、常见问题
+## 四、支持功能
+
+目前支持聊天记录保存最近20条、歌曲搜索使用歌名/歌手名，也可以通过歌单添加想要加入队列的歌曲，搜用户名或者歌单名字都可以。
+
+为了支持海外部署的VPS，我这里挂了一个国内域名伪装，这样不会因为海外IP限制播放各种歌。
+
+另外，意外的发现部署登陆的那个账号，如果有云盘存储的歌曲，也是可以播放的，仅限登录号！
+
+本来就是Vibe Coding的，想要什么自己加。
+
+## 五、常见问题
 
 - **第一次没声音？** 浏览器自动播放策略会拦首次，页面会出现"CLICK TO PLAY"提示，点一下就好。
 - **直链失败 / 403？** VIP cookie 可能过期，更新 `.env` 后 `docker compose restart backend`。
 - **想加新邀请码？** 改 `.env` 的 `INVITE_CODES`（逗号分隔），重启 backend。
-- **跳过要不要投票？** 当前 MVP 是任何登录用户都能直接 skip。后面要加投票把 `routers/queue.py` 的 `/skip` 改一下即可。
-- **国内 VPS 想跑？** 需要域名先备案，或改用非标端口（如 8443）+ Caddy DNS-01 证书。脚本默认按海外环境配置。
+- **国内想跑？** 需要域名先备案，或改用非标端口（如 8443）+ Caddy DNS-01 证书。脚本默认按海外环境配置。
