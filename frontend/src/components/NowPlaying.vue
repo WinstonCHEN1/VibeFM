@@ -177,8 +177,11 @@ onUnmounted(() => {
     </div>
 
     <div v-else style="padding:24px;text-align:center" class="muted">
-      <div class="pix-h sm">▒ NO SIGNAL ▒</div>
-      <div style="margin-top:8px;font-size:15px">电台准备中… 点首歌让它转起来</div>
+      <div class="pix-h sm">{{ radio.frozen ? '▒ ZZZ · STATION ASLEEP ▒' : '▒ NO SIGNAL ▒' }}</div>
+      <div style="margin-top:8px;font-size:15px">
+        <span v-if="radio.frozen">没人在听，电台休眠了 · 你的到来会唤醒它</span>
+        <span v-else>电台准备中… 点首歌让它转起来</span>
+      </div>
     </div>
 
     <div v-if="radio.needUnlock" class="unlock-banner" @click="unlock">

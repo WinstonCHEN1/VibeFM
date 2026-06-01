@@ -89,6 +89,9 @@ async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
         await ws.close(code=4401)
         return
     await hub.connect(ws, user.nickname)
+    # 第一个人来 → 解冻
+    if hub.online_count() == 1:
+        await radio.thaw()
     try:
         snap = await radio.state_snapshot()
         await ws.send_text(json.dumps({"type": "state", "data": snap}, ensure_ascii=False))
@@ -111,3 +114,6 @@ async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
     finally:
         await hub.disconnect(ws)
         await hub.broadcast_online()
+        # 最后一个人走 → 冻结
+        if hub.online_count() == 0:
+            await radio.freeze()

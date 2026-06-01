@@ -34,6 +34,8 @@ class Radio:
         self.current: Optional[dict] = None
         self._fallback_pool: list[int] = []
         self._switch_lock = asyncio.Lock()
+        self.frozen: bool = False
+        self._frozen_remaining: float = 0.0   # 冻结时记录还剩多少秒
 
     async def start(self) -> None:
         self.redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -44,7 +46,12 @@ class Radio:
                 print(f"[radio] fallback pool loaded: {len(self._fallback_pool)} tracks")
             except Exception as e:
                 print("[radio] fallback playlist preload failed:", e)
-        await self.play_next(reason="boot")
+        # 启动时若没人在线就冻结
+        if hub.online_count() == 0:
+            self.frozen = True
+            print("[radio] no listeners, frozen at boot")
+        else:
+            await self.play_next(reason="boot")
 
     async def stop(self) -> None:
         if self.scheduler.running:
@@ -188,8 +195,42 @@ class Radio:
             "online": hub.online_count(),
             "online_list": hub.online_list(),
             "chat_history": await self.chat_history(),
+            "frozen": self.frozen,
             "server_time": int(time.time() * 1000),
         }
+
+    async def freeze(self) -> None:
+        """没人听了：取消切歌定时器，记录剩余时间。"""
+        if self.frozen:
+            return
+        for job in list(self.scheduler.get_jobs()):
+            if job.id == "song_end":
+                # 算剩余秒
+                if self.current:
+                    elapsed = (time.time() * 1000 - self.current["started_at"]) / 1000
+                    self._frozen_remaining = max(0, self.current["duration"] - elapsed)
+                job.remove()
+        self.frozen = True
+        print(f"[radio] frozen, {self._frozen_remaining:.1f}s remaining of current track")
+
+    async def thaw(self) -> None:
+        """有人来了：解冻并继续播。"""
+        if not self.frozen:
+            return
+        self.frozen = False
+        if self.current and self._frozen_remaining > 0:
+            # 把 started_at 重设成"现在 - 已播秒数"，相当于把暂停的时间补偿掉
+            elapsed = self.current["duration"] - self._frozen_remaining
+            new_started = int(time.time() * 1000) - int(elapsed * 1000)
+            self.current["started_at"] = new_started
+            assert self.redis is not None
+            await self.redis.set(STATE_KEY, json.dumps(self.current, ensure_ascii=False))
+            self._schedule_next(self._frozen_remaining)
+            await hub.broadcast("song_change", self._public_state())
+            print(f"[radio] thawed, resume current; +{self._frozen_remaining:.1f}s")
+            self._frozen_remaining = 0
+        else:
+            await self.play_next(reason="thaw")
 
     async def broadcast_queue(self) -> None:
         await hub.broadcast("queue_update", await self.queue_list())

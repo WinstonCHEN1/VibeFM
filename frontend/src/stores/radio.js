@@ -9,6 +9,7 @@ export const useRadioStore = defineStore('radio', {
     onlineList: [],
     chats: [],
     serverOffsetMs: 0,
+    frozen: false,
     ws: null,
     connected: false,
     needUnlock: false,
@@ -39,11 +40,14 @@ export const useRadioStore = defineStore('radio', {
         this.queue = msg.data.queue
         this.onlineList = msg.data.online_list || []
         this.serverOffsetMs = msg.data.server_time - Date.now()
+        this.frozen = !!msg.data.frozen
         // 历史聊天打标记 history:true，前端用来画分隔线
         const history = (msg.data.chat_history || []).map(c => ({ ...c, history: true }))
         this.chats = history
         this._emit('songChange', msg.data.current)
       } else if (msg.type === 'song_change') {
+        // 服务端切歌或解冻 → 总是当 unfrozen
+        this.frozen = false
         this._emit('songChange', msg.data)
       } else if (msg.type === 'queue_update') {
         this.queue = msg.data
