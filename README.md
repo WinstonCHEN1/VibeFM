@@ -2,40 +2,33 @@
 
 一个一键部署、朋友圈级别的 24h Web 电台，音乐源自网易云（用你的 cookie 解析），登录用户可点歌排队。像素风界面，温暖米色调。
 
-一个Vibe Coding的小玩意，效果不错，适合你和朋友闲着没事干的时候一起听听歌。
+在一次升级之后加入了虚拟工位，允许你干活闲着没事的时候看看还有谁也在摸鱼。
+
+一个Vibe Coding的小玩意，效果不错，适合你和朋友闲着没事干的时候一起听听歌、发发牢骚。项目已Docker化，支持一键部署。
+
+![](image2.png)
 
 ![](image.png)
 
-## 架构
-
-```
-浏览器 ─┬─ HTTP /api/*  ── nginx ── FastAPI ── NeteaseCloudMusicApi
-        └─ WebSocket /ws ─┘                    └── Redis (队列/状态)
-                                               └── SQLite (用户/历史)
-生产环境最外层加 Caddy 接管 80/443，自动 HTTPS。
-```
-
-播放同步：服务器维护 `current_song + started_at(ms)`。客户端每次接到 `song_change` 事件就 `audio.currentTime = (Date.now() - started_at)/1000`，所有人对齐。
-
-## 一、本机开发（macOS / Linux）
+## 一、本机开发测试
 
 ```bash
 cp .env.example .env
 # 填 INVITE_CODES、NETEASE_COOKIE、FALLBACK_PLAYLIST_ID
 
-./run.sh    # 一键起服务，自动等待健康
+bash run.sh    # 一键起服务，自动等待健康
 # 浏览器 http://localhost:8080
 ```
 
 ### 拿 VIP cookie
 
-1. 浏览器登录 music.163.com（VIP 账号）
+1. 浏览器登录 music.163.com（建议是 VIP 账号）
 2. F12 → Application → Cookies → 把 `MUSIC_U` 那一段复制出来即可（也可以整段复制）
 3. 粘到 `.env` 的 `NETEASE_COOKIE`，重启 backend：`docker compose restart backend`
 
 ### 兜底歌单
 
-队列空了会从这里随机抽。歌单 URL 末尾的数字就是 ID，例如 `https://music.163.com/#/playlist?id=2829896389` → `2829896389`。
+队列空了会随机这里的内容。歌单 URL 末尾的数字就是 ID，例如 `https://music.163.com/#/playlist?id=2829896389` → `2829896389`。
 
 ## 二、VPS 部署（一键脚本）
 
@@ -50,6 +43,12 @@ sudo bash deploy-almalinux.sh fm.example.com
 # 第一次会停下来让你填 .env，填完再跑一次同样命令
 ```
 
+在之后，有任何的更新，都可以进到项目的根目录直接用脚本更新。脚本会自动拉代码，然后直接重启当前的docker容器，按理来说不影响任何正在使用的用户。
+
+```bash
+bash update.sh
+```
+
 脚本做的事：装 docker / 开 firewalld 80,443 / 跑 docker compose（含 Caddy 自动 HTTPS）。
 
 我的VPS是Almalinux，如果你是Ubuntu或者Debian啥的，自己适配一下。
@@ -58,42 +57,7 @@ sudo bash deploy-almalinux.sh fm.example.com
 
 云厂商安全组要单独再放 80/443 入站。其他端口（8000、6379、3000）一律不要暴露——只在 docker 网络内通。
 
-## 三、目录结构
-
-```
-vibe-fm/
-├── docker-compose.yml         # 本地开发（暴露 8080）
-├── docker-compose.prod.yml    # VPS overlay（叠 Caddy + 80/443）
-├── .env.example
-├── run.sh                     # 本地一键起
-├── deploy-almalinux.sh        # AlmaLinux 一键部署
-├── caddy/Caddyfile
-├── backend/                   # FastAPI
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── app/
-│       ├── main.py            # 入口 + WebSocket
-│       ├── config.py
-│       ├── auth.py            # JWT + UserCtx
-│       ├── db.py / models.py  # SQLite
-│       ├── netease.py         # 网易云客户端
-│       ├── radio.py           # 调度核心
-│       ├── ws.py              # 广播 hub
-│       └── routers/           # auth / search / queue
-└── frontend/                  # Vue3 + Vite + Pinia
-    ├── Dockerfile
-    ├── nginx.conf
-    └── src/
-        ├── App.vue
-        ├── api.js
-        ├── utils.js           # 颜色 hash / 头像 / 时间格式
-        ├── stores/radio.js    # WebSocket + 状态
-        └── components/        # NowPlaying / Queue / SearchPanel /
-                               #   ChatPanel / AudiencePanel /
-                               #   LoginCard / OnlineList / CatMascot / Avatar
-```
-
-## 四、支持功能
+## 三、支持功能
 
 目前支持聊天记录保存最近20条、歌曲搜索使用歌名/歌手名，也可以通过歌单添加想要加入队列的歌曲，搜用户名或者歌单名字都可以。
 
@@ -101,9 +65,11 @@ vibe-fm/
 
 另外，意外的发现部署登陆的那个账号，如果有云盘存储的歌曲，也是可以播放的，仅限登录号！
 
+为了节约VPS的流量，如果整个系统里面没有人在听歌，就会自动冻结当前进度，直到下一个人进来。
+
 本来就是Vibe Coding的，想要什么自己加。
 
-## 五、Vibe Lounge：工位 / 留言 / 戳一下
+## 四、Vibe Lounge：工位 / 留言 / 戳一下
 
 主页 `/` 是 The Floor（工区），点中间的 FM 方框进 `/fm` 听歌。
 
@@ -130,7 +96,7 @@ cp frontend/src/desks/_template.vue frontend/src/desks/<你的昵称>.vue
 
 文件名 = nickname（区分大小写）。完整规则见 `frontend/src/desks/README.md`。
 
-## 六、常见问题
+## 五、常见问题
 
 - **第一次没声音？** 浏览器自动播放策略会拦首次，页面会出现"CLICK TO PLAY"提示，点一下就好。
 - **直链失败 / 403？** VIP cookie 可能过期，更新 `.env` 后 `docker compose restart backend`。
