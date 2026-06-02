@@ -42,10 +42,16 @@ const moodLabel = computed(() => {
       <span class="poster-line b"></span>
     </div>
 
-    <div class="plant">
-      <span class="leaf l"></span>
-      <span class="leaf r"></span>
-      <span class="pot"></span>
+    <div class="jersey" aria-hidden="true"></div>
+
+    <div class="wall-rack">
+      <span class="board"></span>
+      <span class="peg p1"></span>
+      <span class="peg p2"></span>
+      <span class="peg p3"></span>
+      <span class="hanger cap"></span>
+      <span class="hanger scarf"></span>
+      <span class="hanger headset"></span>
     </div>
 
     <div class="note-out" v-if="inBar">♪</div>
@@ -53,6 +59,12 @@ const moodLabel = computed(() => {
     <div class="desk-top"></div>
     <div class="desk-leg l"></div>
     <div class="desk-leg r"></div>
+
+    <div class="beer-glass">
+      <span class="foam"></span>
+      <span class="beer-shine"></span>
+      <span class="handle"></span>
+    </div>
 
     <div class="monitor">
       <div class="screen" :class="{ on: atDesk && !sleeping, dark: offline || inBar, sleep: sleeping }">
@@ -95,30 +107,14 @@ const moodLabel = computed(() => {
       <div class="arm-r"></div>
     </div>
 
-    <div class="companion" :class="{ wait: !atDesk || sleeping }">
-      <div class="hair-back"></div>
-      <div class="tail left"></div>
-      <div class="tail right"></div>
-      <div class="face">
-        <span class="eye left"></span>
-        <span class="eye right"></span>
-        <span class="blush left"></span>
-        <span class="blush right"></span>
-        <span class="mouth"></span>
-      </div>
-      <div class="bang"></div>
-      <div class="ribbon"></div>
-      <div class="dress">
-        <span class="collar"></span>
-        <span class="belt"></span>
-      </div>
-      <div class="arm a"></div>
-      <div class="arm b"></div>
-      <div class="leg a"></div>
-      <div class="leg b"></div>
-      <div class="boot a"></div>
-      <div class="boot b"></div>
-      <div class="heart" v-if="atDesk && !sleeping">♥</div>
+    <div class="companion companion-nun" :class="{ wait: !atDesk || sleeping }">
+      <div class="nun-sprite" aria-hidden="true"></div>
+      <div class="shine" v-if="atDesk && !sleeping">✦</div>
+    </div>
+
+    <div class="companion companion-catgirl" :class="{ wait: !atDesk || sleeping }">
+      <div class="catgirl-sprite" aria-hidden="true"></div>
+      <div class="spark" v-if="atDesk && !sleeping">✦</div>
     </div>
 
     <div class="bar-tag" v-if="inBar">在酒馆</div>
@@ -186,33 +182,133 @@ const moodLabel = computed(() => {
 .poster-line.a { top: 18px; width: 26px; }
 .poster-line.b { top: 25px; width: 18px; background: var(--green); }
 
-.plant {
+.jersey {
   position: absolute;
-  right: 17px;
-  top: 20px;
-  width: 26px;
-  height: 36px;
+  right: 11px;
+  top: 10px;
+  width: 42px;
+  height: 42px;
+  background: url('./Ziwen-Li-basa.png') center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 0 rgba(61,46,31,0.25));
 }
-.pot {
+.jersey::before {
+  content: '';
   position: absolute;
-  left: 8px;
-  bottom: 0;
-  width: 14px;
-  height: 11px;
-  background: var(--orange-d);
+  left: 18px;
+  top: -7px;
+  width: 2px;
+  height: 8px;
+  background: var(--ink);
+}
+.jersey::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: -8px;
+  width: 12px;
+  height: 2px;
+  background: var(--ink);
+}
+
+.wall-rack {
+  position: absolute;
+  right: 12px;
+  top: 60px;
+  width: 52px;
+  height: 24px;
+  z-index: 2;
+}
+.wall-rack .board {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1px;
+  height: 7px;
+  background: linear-gradient(#8d5938 0 45%, #6e3a2a 45% 100%);
   border: 2px solid var(--ink);
 }
-.leaf {
+.peg {
   position: absolute;
-  bottom: 12px;
-  width: 11px;
-  height: 18px;
-  background: var(--green);
-  border: 1px solid var(--ink);
-  border-radius: 10px 10px 0 10px;
+  top: 8px;
+  width: 3px;
+  height: 8px;
+  background: var(--ink);
 }
-.leaf.l { left: 4px; transform: rotate(-24deg); }
-.leaf.r { right: 2px; transform: rotate(22deg); background: var(--olive); }
+.peg::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  bottom: -3px;
+  width: 7px;
+  height: 4px;
+  border: 2px solid var(--ink);
+  border-top: none;
+}
+.peg.p1 { left: 9px; }
+.peg.p2 { left: 24px; }
+.peg.p3 { right: 9px; }
+.hanger.cap {
+  position: absolute;
+  left: 1px;
+  bottom: -1px;
+  width: 14px;
+  height: 8px;
+  background: var(--orange-d);
+  border: 2px solid var(--ink);
+  border-radius: 8px 8px 1px 1px;
+}
+.hanger.cap::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  bottom: -1px;
+  width: 6px;
+  height: 4px;
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  border-left: none;
+}
+.hanger.scarf {
+  position: absolute;
+  left: 21px;
+  bottom: -1px;
+  width: 8px;
+  height: 14px;
+  background: linear-gradient(var(--blue) 0 50%, var(--bg-card) 50% 100%);
+  border: 2px solid var(--ink);
+}
+.hanger.scarf::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  bottom: 2px;
+  width: 5px;
+  height: 11px;
+  background: var(--blue);
+  border: 2px solid var(--ink);
+}
+.hanger.headset {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  width: 11px;
+  height: 9px;
+  border: 2px solid var(--ink);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+.hanger.headset::before,
+.hanger.headset::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  width: 4px;
+  height: 7px;
+  background: var(--ink);
+}
+.hanger.headset::before { left: -1px; }
+.hanger.headset::after { right: -1px; }
 
 .note-out {
   position: absolute;
@@ -249,6 +345,56 @@ const moodLabel = computed(() => {
 }
 .desk-leg.l { left: 22px; }
 .desk-leg.r { right: 22px; }
+
+.beer-glass {
+  position: absolute;
+  left: 53px;
+  bottom: calc(36% + 7px);
+  width: 16px;
+  height: 22px;
+  z-index: 4;
+}
+.beer-glass::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1px;
+  width: 11px;
+  height: 18px;
+  background: linear-gradient(#f5c65a 0 34%, #d7903a 34% 100%);
+  border: 2px solid var(--ink);
+  clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+  box-shadow: 1px 1px 0 rgba(61,46,31,0.25);
+}
+.foam {
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  width: 11px;
+  height: 6px;
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  border-bottom: none;
+  border-radius: 6px 6px 2px 2px;
+}
+.beer-shine {
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  width: 2px;
+  height: 8px;
+  background: rgba(255,255,255,0.55);
+}
+.beer-glass .handle {
+  position: absolute;
+  right: -2px;
+  top: 7px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid var(--ink);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
 
 .monitor {
   position: absolute;
@@ -496,210 +642,80 @@ const moodLabel = computed(() => {
 
 .companion {
   position: absolute;
-  right: 12px;
-  bottom: 10px;
-  width: 44px;
-  height: 70px;
+  bottom: 0;
   z-index: 5;
   animation: companionBob 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.companion-nun {
+  left: 6px;
+  width: 52px;
+  height: 78px;
+}
+.companion-catgirl {
+  right: -4px;
+  bottom: -1px;
+  width: 62px;
+  height: 92px;
+  animation-delay: 0.28s;
 }
 .companion.wait { animation-duration: 2.6s; }
 @keyframes companionBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
 }
-.hair-back {
+.nun-sprite {
   position: absolute;
-  left: 10px;
-  top: 0;
-  width: 25px;
-  height: 34px;
-  background: #C76083;
-  border: 2px solid var(--ink);
-  box-shadow:
-    -3px 7px 0 #A94E71,
-    3px 7px 0 #E18EAA;
-}
-.tail {
-  position: absolute;
-  top: 16px;
-  width: 10px;
-  height: 30px;
-  background: #C76083;
-  border: 2px solid var(--ink);
-  z-index: 1;
-}
-.tail.left {
-  left: 5px;
-  transform: rotate(10deg);
-  box-shadow: -2px 10px 0 #A94E71;
-}
-.tail.right {
-  right: 5px;
-  transform: rotate(-10deg);
-  box-shadow: 2px 10px 0 #E18EAA;
-}
-.face {
-  position: absolute;
-  left: 12px;
-  top: 8px;
-  width: 21px;
-  height: 19px;
-  background: #F4C7A3;
-  border: 2px solid var(--ink);
-  z-index: 3;
-}
-.eye {
-  position: absolute;
-  top: 7px;
-  width: 3px;
-  height: 4px;
-  background: var(--ink);
-  animation: blinkFace 4s steps(2) infinite;
-}
-.eye.left { left: 4px; }
-.eye.right { right: 4px; }
-@keyframes blinkFace {
-  0%, 90%, 100% { height: 4px; }
-  94% { height: 1px; transform: translateY(2px); }
-}
-.blush {
-  position: absolute;
-  top: 12px;
-  width: 4px;
-  height: 2px;
-  background: var(--pink);
-}
-.blush.left { left: 2px; }
-.blush.right { right: 2px; }
-.mouth {
-  position: absolute;
-  left: 9px;
-  top: 13px;
-  width: 4px;
-  height: 2px;
-  background: var(--ink);
-}
-.bang {
-  position: absolute;
-  left: 10px;
-  top: 3px;
-  width: 25px;
-  height: 11px;
-  background: #D77799;
-  border: 2px solid var(--ink);
-  border-bottom: 2px solid var(--ink);
-  z-index: 4;
-}
-.bang::before,
-.bang::after {
-  content: '';
-  position: absolute;
-  bottom: -7px;
-  width: 6px;
-  height: 8px;
-  background: #D77799;
-  border: 2px solid var(--ink);
-  border-top: none;
-}
-.bang::before { left: 1px; }
-.bang::after { right: 2px; height: 6px; }
-.ribbon {
-  position: absolute;
-  right: 6px;
-  top: 9px;
-  width: 8px;
-  height: 8px;
-  background: var(--orange);
-  border: 2px solid var(--ink);
-  z-index: 5;
-  transform: rotate(45deg);
-}
-.dress {
-  position: absolute;
-  left: 11px;
-  top: 31px;
-  width: 23px;
-  height: 26px;
-  background: #78A9D4;
-  border: 2px solid var(--ink);
-  z-index: 3;
-  clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%);
-}
-.collar {
-  position: absolute;
-  left: 7px;
-  top: 0;
-  width: 9px;
-  height: 7px;
-  background: var(--bg-card);
-  border: 2px solid var(--ink);
-  border-top: none;
-}
-.belt {
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  top: 14px;
-  height: 3px;
-  background: var(--orange);
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--ink);
-}
-.companion .arm {
-  position: absolute;
-  top: 35px;
-  width: 6px;
-  height: 18px;
-  background: #F4C7A3;
-  border: 2px solid var(--ink);
-  z-index: 2;
-}
-.companion .arm.a {
-  left: 6px;
-  transform: rotate(14deg);
-}
-.companion .arm.b {
-  right: 4px;
-  transform: rotate(-22deg);
-  animation: waveHand 1.8s ease-in-out infinite;
-}
-@keyframes waveHand {
-  0%, 100% { transform: rotate(-22deg); }
-  50% { transform: rotate(-42deg); }
-}
-.companion .leg {
-  position: absolute;
-  bottom: 6px;
-  width: 6px;
-  height: 14px;
-  background: #F4C7A3;
-  border: 2px solid var(--ink);
-  z-index: 1;
-}
-.companion .leg.a { left: 14px; }
-.companion .leg.b { right: 13px; }
-.boot {
-  position: absolute;
+  left: -15px;
   bottom: 0;
-  width: 10px;
-  height: 7px;
-  background: #4B2D25;
-  border: 2px solid var(--ink);
-  z-index: 4;
+  width: 80px;
+  height: 105px;
+  background-image: url('./Ziwen-Li-nun-idle.png');
+  background-repeat: no-repeat;
+  background-size: 160px 210px;
+  image-rendering: pixelated;
+  transform: scale(0.62);
+  transform-origin: bottom center;
+  filter: drop-shadow(2px 2px 0 rgba(61,46,31,0.35));
+  animation: nunIdle 1.2s steps(1) infinite;
 }
-.boot.a { left: 10px; }
-.boot.b { right: 9px; }
-.heart {
+.catgirl-sprite {
   position: absolute;
-  right: -4px;
-  top: 5px;
+  right: -8px;
+  bottom: 0;
+  width: 72px;
+  height: 86px;
+  background-image: url('./Ziwen-Li-catgirl-normal.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center bottom;
+  filter: drop-shadow(2px 2px 0 rgba(61,46,31,0.35));
+}
+@keyframes nunIdle {
+  0%, 24.9% { background-position: 0 0; }
+  25%, 49.9% { background-position: -80px 0; }
+  50%, 74.9% { background-position: 0 -105px; }
+  75%, 100% { background-position: -80px -105px; }
+}
+.shine {
+  position: absolute;
+  right: -5px;
+  top: 10px;
   font-family: var(--font-pix);
   font-size: 9px;
   color: var(--orange-d);
-  animation: heartPop 1.2s ease-in-out infinite;
+  animation: shinePop 1.2s ease-in-out infinite;
 }
-@keyframes heartPop {
+.spark {
+  position: absolute;
+  left: 4px;
+  top: 26px;
+  font-family: var(--font-pix);
+  font-size: 9px;
+  color: var(--orange);
+  animation: shinePop 1.35s ease-in-out infinite;
+}
+@keyframes shinePop {
   0%, 100% { transform: scale(0.9); opacity: 0.55; }
   50% { transform: scale(1.15); opacity: 1; }
 }
