@@ -461,7 +461,11 @@ const onlineDetails = computed(() => {
 /* —— Floor 卡片 + 网格 —— */
 .floor-card { padding: 10px; position: relative; }
 .stage-wrap {
-  display: flex; justify-content: center;
+  /* 用 block + overflow-x，避免 flex 居中导致窄屏无法左滑 */
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   background: #C99B6E;
   border: 3px solid var(--ink);
   padding: 18px;
@@ -474,6 +478,7 @@ const onlineDetails = computed(() => {
 .stage {
   display: grid;
   position: relative;
+  margin: 0 auto;     /* 容器够宽时居中；不够宽时贴左，左右都能滚 */
 }
 .slot {
   position: relative;
@@ -516,6 +521,10 @@ const onlineDetails = computed(() => {
 
 @media (max-width: 980px) {
   .topbar { grid-template-columns: 1fr; }
-  .stage-wrap { padding: 14px; overflow-x: auto; }
+  .stage-wrap { padding: 12px; }
+}
+@media (max-width: 600px) {
+  .container { padding: 10px 10px 24px; }
+  .stage-wrap { padding: 10px; }
 }
 </style>
