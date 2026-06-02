@@ -39,6 +39,11 @@ const moodLabel = computed(() => {
     <div class="floor"></div>
 
     <div class="bubble" v-if="poke">{{ poke.emoji }}</div>
+    <div class="poke-tip" v-if="poke">
+      <span class="poke-from">{{ poke.from }}</span>
+      <span> 戳了 </span>
+      <span class="poke-to">{{ isMe ? '你' : (poke.to || nick) }}</span>
+    </div>
 
     <!-- Accept 横幅（贴在后墙中部） -->
     <div class="banner">
@@ -622,6 +627,21 @@ const moodLabel = computed(() => {
   animation: pop 0.4s ease-out, float 1.6s ease-in-out 0.4s infinite;
   pointer-events: none;
 }
+.poke-tip {
+  position: absolute;
+  left: 50%; top: -28px;
+  transform: translateX(-50%);
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 11px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  z-index: 5;
+  animation: pop 0.3s ease-out;
+}
+.poke-tip .poke-from { font-weight: bold; }
+.poke-tip .poke-to   { color: var(--ink); font-weight: bold; }
 @keyframes pop { 0%{transform:scale(0.2);opacity:0;} 60%{transform:scale(1.3);opacity:1;} 100%{transform:scale(1);opacity:1;} }
 @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
 </style>

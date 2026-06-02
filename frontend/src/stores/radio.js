@@ -19,8 +19,10 @@ export const useRadioStore = defineStore('radio', {
     ws: null,
     connected: false,
     needUnlock: false,
-    pokes: [],                  // 收到的戳一下：{ id, from, emoji, t }
+    pokes: [],                  // 当前正在显示的 poke：{ id, from, to, emoji, t }
+    pokeToasts: [],             // 别人戳"我"的 toast：{ id, from, emoji, t }
     walls: {},                  // 工位留言：{ [target]: [{nick, content, ts}, ...] }
+    chatUnread: 0,              // 大厅聊天未读条数（不在 floor 时累加）
   }),
   getters: {
     isPlaying: (s) => !!s.current,
@@ -82,14 +84,32 @@ export const useRadioStore = defineStore('radio', {
       } else if (msg.type === 'chat') {
         this.chats.push({ ...msg.data, history: false })
         if (this.chats.length > 200) this.chats.splice(0, this.chats.length - 200)
+        // 自己发的、或者已经在 floor 的不计未读
+        if (msg.data.nick !== auth.nickname) {
+          this.chatUnread += 1
+        }
       } else if (msg.type === 'poke') {
         const id = Math.random().toString(36).slice(2)
-        const item = { id, from: msg.data.from, emoji: msg.data.emoji || '👋', t: Date.now() }
+        const item = {
+          id,
+          from: msg.data.from,
+          to: msg.data.to || '',
+          emoji: msg.data.emoji || '👋',
+          t: Date.now(),
+        }
         this.pokes.push(item)
-        // 5 秒后自动消失
+        // 工位上的气泡 4 秒后消失
         setTimeout(() => {
           this.pokes = this.pokes.filter(p => p.id !== id)
-        }, 5000)
+        }, 4000)
+        // 如果戳的是自己 → 弹一个右下角 toast
+        if (item.to === auth.nickname && item.from !== auth.nickname) {
+          const tid = 't' + id
+          this.pokeToasts.push({ id: tid, from: item.from, emoji: item.emoji, t: Date.now() })
+          setTimeout(() => {
+            this.pokeToasts = this.pokeToasts.filter(p => p.id !== tid)
+          }, 4000)
+        }
       } else if (msg.type === 'wall_post') {
         const m = msg.data
         if (!m || !m.target) return
@@ -135,6 +155,7 @@ export const useRadioStore = defineStore('radio', {
       if (!this.ws || !content) return
       this.ws.send(JSON.stringify({ type: 'chat', content }))
     },
+    clearChatUnread() { this.chatUnread = 0 },
     wallPost(target, content) {
       if (!this.ws || !target || !content) return
       this.ws.send(JSON.stringify({ type: 'wall_post', to: target, content }))

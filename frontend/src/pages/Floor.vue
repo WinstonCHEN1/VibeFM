@@ -74,10 +74,10 @@ function openWall(nick) {
 }
 function closeWall() { wallTarget.value = '' }
 
-// 最近收到的戳一下，按发送方索引（显示在他的工位上方）
+// 当前工位上要显示的气泡（按"被戳人"索引，全场可见）
 const pokeFor = computed(() => {
   const map = {}
-  for (const p of radio.pokes) map[p.from] = p
+  for (const p of radio.pokes) map[p.to] = p
   return map
 })
 
@@ -218,7 +218,7 @@ const onlineDetails = computed(() => {
               v-for="(s, i) in slots"
               :key="i"
               class="slot"
-              :class="{ vacant: !s.occupied }"
+              :class="{ vacant: !s.occupied, poked: !!pokeFor[s.nick] }"
               @click="openWall(s.nick)"
             >
               <component
@@ -228,7 +228,7 @@ const onlineDetails = computed(() => {
                 :online="isOnline(s.nick)"
                 :location="presenceOf(s.nick).location || ''"
                 :is-me="s.nick === auth.nickname"
-                :poke="s.nick === auth.nickname ? null : (pokeFor[s.nick] || null)"
+                :poke="pokeFor[s.nick] || null"
               />
             </div>
           </div>
@@ -241,6 +241,15 @@ const onlineDetails = computed(() => {
       <footer class="footer muted">
         ╱╱ vibe lounge ╱ never goes off air ╱╱
       </footer>
+
+      <!-- 被戳 toast -->
+      <div class="toasts" v-if="radio.pokeToasts.length">
+        <div v-for="t in radio.pokeToasts" :key="t.id" class="toast">
+          <span class="toast-emoji">{{ t.emoji }}</span>
+          <span class="toast-from">{{ t.from }}</span>
+          <span> 戳了你！</span>
+        </div>
+      </div>
     </div>
 
     <WallBoard v-if="wallTarget" :target="wallTarget" @close="closeWall"/>
@@ -473,8 +482,37 @@ const onlineDetails = computed(() => {
 }
 .slot:hover:not(.vacant) { transform: translate(-2px, -2px); }
 .slot.vacant { cursor: default; }
+.slot.poked {
+  animation: poke-glow 1.4s ease-in-out infinite;
+}
+@keyframes poke-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50%      { filter: drop-shadow(0 0 8px rgba(232,148,90,0.95)); }
+}
 
 .footer { text-align: center; font-size: 13px; letter-spacing: 1px; }
+
+.toasts {
+  position: fixed;
+  right: 18px; bottom: 18px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 60;
+}
+.toast {
+  background: var(--orange);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 6px 12px;
+  font-size: 14px;
+  display: flex; align-items: center; gap: 6px;
+  animation: toastin 0.3s ease-out;
+}
+.toast-emoji { font-size: 20px; }
+.toast-from { font-weight: bold; }
+@keyframes toastin {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
 
 @media (max-width: 980px) {
   .topbar { grid-template-columns: 1fr; }

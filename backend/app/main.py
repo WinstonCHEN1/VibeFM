@@ -125,10 +125,10 @@ async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
                 target = (data.get("to") or "").strip()
                 emoji = (data.get("emoji") or "👋")[:4]
                 if target and target != user.nickname:
-                    await hub.send_to(
-                        target,
+                    # 全场广播：所有人都看到 target 工位发光+冒气泡
+                    await hub.broadcast(
                         "poke",
-                        {"from": user.nickname, "emoji": emoji},
+                        {"from": user.nickname, "to": target, "emoji": emoji},
                     )
             elif data.get("type") == "wall_post":
                 target = (data.get("to") or "").strip()

@@ -1,17 +1,20 @@
 <script setup>
-import { ref, nextTick, watch, computed } from 'vue'
+import { ref, nextTick, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRadioStore } from '../stores/radio.js'
 import { pickColor } from '../utils.js'
 
 const radio = useRadioStore()
 const input = ref('')
 const listRef = ref(null)
+const flash = ref(false)
+let flashTimer = null
 
 function send() {
   const v = input.value.trim()
   if (!v) return
   radio.sendChat(v.slice(0, 200))
   input.value = ''
+  radio.clearChatUnread()
 }
 
 const lastHistoryIdx = computed(() => {
@@ -31,19 +34,34 @@ function fmtClock(ts) {
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-watch(() => radio.chats.length, async () => {
+// 新消息：滚到底 + 卡片闪一下 + 进 floor 时清未读
+watch(() => radio.chats.length, async (n, o) => {
   await nextTick()
   if (listRef.value) listRef.value.scrollTop = listRef.value.scrollHeight
+  if (n > o) {
+    flash.value = true
+    clearTimeout(flashTimer)
+    flashTimer = setTimeout(() => { flash.value = false }, 1200)
+  }
 }, { immediate: true })
+
+onMounted(() => radio.clearChatUnread())
+onUnmounted(() => {
+  radio.clearChatUnread()
+  clearTimeout(flashTimer)
+})
 </script>
 
 <template>
-  <div class="lobby-chat pix-card">
+  <div class="lobby-chat pix-card" :class="{ flash }">
     <div class="head">
       <span class="pix-h">▼ LOBBY CHAT</span>
-      <span class="muted" style="font-size:12px">最近 20 条 · 全场可见</span>
+      <span class="head-r">
+        <span v-if="radio.chatUnread" class="unread-pill">+{{ radio.chatUnread }}</span>
+        <span class="muted" style="font-size:12px">最近 20 条 · 全场可见</span>
+      </span>
     </div>
-    <div ref="listRef" class="chat-list pix-scroll">
+    <div ref="listRef" class="chat-list pix-scroll" @scroll="radio.clearChatUnread()">
       <div v-if="radio.chats.length === 0" class="muted" style="text-align:center;padding:20px 0">
         说点什么吧～
       </div>
@@ -70,17 +88,40 @@ watch(() => radio.chats.length, async () => {
     </div>
     <div class="row" style="gap:8px;margin-top:10px">
       <input class="pix-input" v-model="input" maxlength="200"
-             @keydown.enter="send" placeholder="press ENTER to send..."/>
+             @keydown.enter="send"
+             @focus="radio.clearChatUnread()"
+             placeholder="press ENTER to send..."/>
       <button class="pix-btn" :disabled="!input.trim()" @click="send">SEND</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.lobby-chat { display: flex; flex-direction: column; }
+.lobby-chat { display: flex; flex-direction: column; transition: box-shadow 0.3s; }
+.lobby-chat.flash { animation: chatFlash 1.2s ease-out; }
+@keyframes chatFlash {
+  0%   { box-shadow: 4px 4px 0 var(--ink), 0 0 0 0 rgba(232,148,90,0); }
+  20%  { box-shadow: 4px 4px 0 var(--ink), 0 0 14px 3px rgba(232,148,90,0.85); }
+  100% { box-shadow: 4px 4px 0 var(--ink), 0 0 0 0 rgba(232,148,90,0); }
+}
 .head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 8px;
+}
+.head-r { display: flex; align-items: center; gap: 8px; }
+.unread-pill {
+  font-family: var(--font-pix);
+  font-size: 8px;
+  background: var(--orange-d);
+  color: var(--bg-card);
+  border: 2px solid var(--ink);
+  padding: 2px 5px;
+  letter-spacing: 1px;
+  animation: pulse-pill 1.4s ease-in-out infinite;
+}
+@keyframes pulse-pill {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
 }
 .chat-list {
   height: 200px;
