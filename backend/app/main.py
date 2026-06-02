@@ -116,6 +116,8 @@ async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
                     fields["location"] = loc
                 if "text" in data:
                     fields["text"] = (data.get("text") or "")[:20]
+                if "listening" in data:
+                    fields["listening"] = bool(data.get("listening"))
                 if fields:
                     hub.update_presence(ws, **fields)
                     await hub.broadcast_presence(user.nickname)

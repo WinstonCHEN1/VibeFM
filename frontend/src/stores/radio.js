@@ -108,6 +108,7 @@ export const useRadioStore = defineStore('radio', {
         type: 'presence',
         location: this.location,
         text: this.statusText,
+        listening: this.listening,
       }))
     },
     setLocation(loc) {
@@ -118,6 +119,7 @@ export const useRadioStore = defineStore('radio', {
     setListening(v) {
       this.listening = !!v
       localStorage.setItem('fm_listening', this.listening ? '1' : '0')
+      this._sendPresence()
     },
     setStatusText(text) {
       const t = (text || '').slice(0, 20)

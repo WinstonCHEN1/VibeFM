@@ -40,10 +40,10 @@ const moodLabel = computed(() => {
 
     <div class="bubble" v-if="poke">{{ poke.emoji }}</div>
 
-    <!-- Paper Accept 横幅（贴在最顶上） -->
+    <!-- Accept 横幅（贴在后墙中部） -->
     <div class="banner">
       <span class="banner-edge l"></span>
-      <span class="banner-text">PAPER ACCEPT!</span>
+      <span class="banner-text">ACCEPT!</span>
       <span class="banner-edge r"></span>
     </div>
 
@@ -455,10 +455,10 @@ const moodLabel = computed(() => {
 }
 
 /* 横幅 + QQ 企鹅 + 地上的书 */
-/* Paper Accept 横幅 */
+/* Accept 横幅 */
 .banner {
   position: absolute;
-  left: 50%; top: 4px;
+  left: 50%; top: 28px;
   transform: translateX(-50%);
   display: flex; align-items: center;
   z-index: 4;

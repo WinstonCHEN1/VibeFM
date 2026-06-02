@@ -36,6 +36,7 @@ class ConnectionHub:
             self._ws_presence[ws] = {
                 "location": "floor",
                 "text": "",
+                "listening": False,
                 "last_seen": int(time.time()),
             }
 
@@ -75,7 +76,7 @@ class ConnectionHub:
             return None
         p = self._ws_presence[ws]
         for k, v in fields.items():
-            if k in ("location", "text"):
+            if k in ("location", "text", "listening"):
                 p[k] = v
         p["last_seen"] = int(time.time())
         nick = self._conns.get(ws)

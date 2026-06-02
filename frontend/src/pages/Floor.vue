@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { auth } from '../api.js'
+import { auth, api } from '../api.js'
 import { useRadioStore } from '../stores/radio.js'
 import { deskOf, buildSlots, grid } from '../desks/_registry.js'
 import { playSong, stopSong } from '../audio.js'
@@ -54,6 +54,9 @@ function toggleListen() {
       serverOffsetMs: radio.serverOffsetMs,
       onNeedUnlock: v => { needUnlock.value = v },
     })
+  } else {
+    // OFF AIR：戳一下后端让它播下一首（兜底歌单），然后等 song_change 事件到达
+    api.skip().catch(() => {})
   }
 }
 
@@ -101,6 +104,7 @@ const onlineDetails = computed(() => {
       nick: n,
       location: presenceOf(n).location || 'floor',
       text: presenceOf(n).text || '',
+      listening: !!presenceOf(n).listening,
     })
   }
   return list
@@ -129,6 +133,7 @@ const onlineDetails = computed(() => {
             <div v-for="o in onlineDetails" :key="o.nick" class="online-row">
               <Avatar :nick="o.nick" size="sm"/>
               <span class="who">{{ o.nick }}</span>
+              <span v-if="o.listening" class="listening-mark" title="正在听歌">♪</span>
               <span v-if="o.location === 'bar'" class="pix-tag warn" style="font-size:7px">BAR</span>
               <span v-else class="muted small">{{ o.text || 'vibing' }}</span>
             </div>
@@ -163,6 +168,7 @@ const onlineDetails = computed(() => {
             <span style="color:var(--orange-d)">V</span><span>I</span><span style="color:var(--green)">B</span><span>E</span>
             <span style="margin:0 4px">·</span>
             <span style="color:var(--orange)">L</span><span>O</span><span>U</span><span>N</span><span>G</span><span>E</span>
+            <span class="logo-tip">想在大厅听歌？点 LISTENING ♪</span>
           </div>
           <div class="me-row">
             <Avatar :nick="auth.nickname" size="sm"/>
@@ -287,6 +293,16 @@ const onlineDetails = computed(() => {
   max-width: 130px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.listening-mark {
+  font-family: var(--font-pix);
+  font-size: 10px;
+  color: var(--orange-d);
+  animation: listen-pulse-mark 1.4s ease-in-out infinite;
+}
+@keyframes listen-pulse-mark {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50%      { transform: translateY(-2px); opacity: 1; }
+}
 
 /* —— FM 方框（中间，最简单的收音机外观） —— */
 .bar-box {
@@ -392,6 +408,14 @@ const onlineDetails = computed(() => {
   font-family: var(--font-pix);
   font-size: 14px;
   letter-spacing: 2px;
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+}
+.logo-tip {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--ink-mute);
+  white-space: nowrap;
 }
 .me-row { display: flex; align-items: center; gap: 8px; }
 .status-input { display: flex; gap: 6px; }
