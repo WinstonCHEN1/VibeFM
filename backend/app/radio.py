@@ -25,6 +25,7 @@ RECENT_KEY = "fm:recent"
 STATE_KEY = "fm:state"
 CHAT_KEY = "fm:chat"
 CHAT_HISTORY_LIMIT = 50
+WALL_LIMIT = 20
 
 
 class Radio:
@@ -194,6 +195,7 @@ class Radio:
             "queue": await self.queue_list(),
             "online": hub.online_count(),
             "online_list": hub.online_list(),
+            "presence": hub.presence_map(),
             "chat_history": await self.chat_history(),
             "frozen": self.frozen,
             "server_time": int(time.time() * 1000),
@@ -247,6 +249,30 @@ class Radio:
         if not self.redis:
             return []
         items = await self.redis.lrange(CHAT_KEY, -limit, -1)
+        return [json.loads(x) for x in items]
+
+    # ---------- 工位留言板 ----------
+    def _wall_key(self, target: str) -> str:
+        return f"fm:wall:{target}"
+
+    async def push_wall(self, target: str, nick: str, content: str) -> dict:
+        """给某个工位主人留言。"""
+        assert self.redis is not None
+        msg = {
+            "target": target,
+            "nick": nick,
+            "content": content,
+            "ts": int(time.time() * 1000),
+        }
+        key = self._wall_key(target)
+        await self.redis.rpush(key, json.dumps(msg, ensure_ascii=False))
+        await self.redis.ltrim(key, -WALL_LIMIT, -1)
+        return msg
+
+    async def wall_messages(self, target: str, limit: int = WALL_LIMIT) -> list[dict]:
+        if not self.redis:
+            return []
+        items = await self.redis.lrange(self._wall_key(target), -limit, -1)
         return [json.loads(x) for x in items]
 
 

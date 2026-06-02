@@ -109,6 +109,31 @@ async def ws_endpoint(ws: WebSocket, token: str = Query(default="")):
                     await hub.broadcast("chat", saved)
             elif data.get("type") == "ping":
                 await ws.send_text(json.dumps({"type": "pong", "t": data.get("t")}))
+            elif data.get("type") == "presence":
+                fields: dict = {}
+                loc = data.get("location")
+                if loc in ("floor", "bar"):
+                    fields["location"] = loc
+                if "text" in data:
+                    fields["text"] = (data.get("text") or "")[:20]
+                if fields:
+                    hub.update_presence(ws, **fields)
+                    await hub.broadcast_presence(user.nickname)
+            elif data.get("type") == "poke":
+                target = (data.get("to") or "").strip()
+                emoji = (data.get("emoji") or "👋")[:4]
+                if target and target != user.nickname:
+                    await hub.send_to(
+                        target,
+                        "poke",
+                        {"from": user.nickname, "emoji": emoji},
+                    )
+            elif data.get("type") == "wall_post":
+                target = (data.get("to") or "").strip()
+                content = (data.get("content") or "").strip()
+                if target and content:
+                    saved = await radio.push_wall(target, user.nickname, content[:140])
+                    await hub.broadcast("wall_post", saved)
     except WebSocketDisconnect:
         pass
     finally:

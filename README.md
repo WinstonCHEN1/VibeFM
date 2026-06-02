@@ -103,7 +103,34 @@ vibe-fm/
 
 本来就是Vibe Coding的，想要什么自己加。
 
-## 五、常见问题
+## 五、Vibe Lounge：工位 / 留言 / 戳一下
+
+主页 `/` 是 The Floor（工区），点中间的 FM 方框进 `/fm` 听歌。
+
+- **在线状态**：左上 ONLINE 卡片显示谁在线、谁在酒馆里。
+- **设个状态**：右上输入框（≤20 字）。带 `☕` / `咖啡` / `续命` 时桌上会出现咖啡；带 `z` / `睡` / `sleep` / `afk` 时会进入"宕机休眠"动画；带 `🎧` / `听歌` 时戴耳机。
+- **大厅聊天**：Floor 下面的 LOBBY CHAT，最近 20 条全场可见。
+- **工位留言**：点任意工位 → 弹出留言板，每个工位独立保留最近 20 条（140 字）。同一面板里也能 emoji 戳一下。
+- **MY WALL**：FM 页右下角原来的 chat 改成自己工位收到的留言，听歌时也能看朋友给你留了啥。
+
+### Claim Your Desk（提 PR 装修自己的工位）
+
+```bash
+# 1. 复制模板
+cp frontend/src/desks/_template.vue frontend/src/desks/<你的昵称>.vue
+
+# 2. 改造内部 div / SVG / CSS（保持 100% 撑满父容器；像素风 + 米色调）
+#    模板里已经把 atDesk / inBar / offline / sleeping / coffee / headphone 钩子写好了
+
+# 3. 在 _layout.json 的 slots 数组里把对应位置改成你的昵称
+#    slots 是按行优先的固定槽位（3×2=6 格）
+
+# 4. 提 PR
+```
+
+文件名 = nickname（区分大小写）。完整规则见 `frontend/src/desks/README.md`。
+
+## 六、常见问题
 
 - **第一次没声音？** 浏览器自动播放策略会拦首次，页面会出现"CLICK TO PLAY"提示，点一下就好。
 - **直链失败 / 403？** VIP cookie 可能过期，更新 `.env` 后 `docker compose restart backend`。

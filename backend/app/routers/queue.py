@@ -34,3 +34,9 @@ async def skip(user=Depends(current_user)):
     # MVP：登录用户都能直接 skip。如果需要投票后续再加。
     await radio.skip()
     return {"ok": True}
+
+
+@router.get("/wall/{target}")
+async def wall(target: str):
+    """拿某个工位主人的最近留言。"""
+    return {"target": target, "items": await radio.wall_messages(target)}
