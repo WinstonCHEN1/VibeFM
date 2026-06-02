@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '../api.js'
 import { useRadioStore } from '../stores/radio.js'
 import { deskOf, buildSlots, grid } from '../desks/_registry.js'
+import { playSong, stopSong } from '../audio.js'
 import Avatar from '../components/Avatar.vue'
 import LobbyChat from '../components/LobbyChat.vue'
 import WallBoard from '../components/WallBoard.vue'
@@ -12,14 +13,53 @@ const radio = useRadioStore()
 const router = useRouter()
 const draftStatus = ref(radio.statusText || '')
 const wallTarget = ref('')
+const needUnlock = ref(false)
 
 onMounted(() => {
   if (auth.token) radio.initSocket()
   radio.setLocation('floor')
+  // 如果之前打开了 LISTEN 且当前已有歌，进 floor 自动续上
+  if (radio.listening && radio.current) {
+    playSong(radio.current, {
+      serverOffsetMs: radio.serverOffsetMs,
+      onNeedUnlock: v => { needUnlock.value = v },
+    })
+  }
+  window.addEventListener('fm:songChange', onSongEvent)
 })
+onUnmounted(() => {
+  window.removeEventListener('fm:songChange', onSongEvent)
+})
+
+function onSongEvent(e) {
+  if (!radio.listening) return
+  const song = e.detail
+  if (!song) { stopSong(); return }
+  playSong(song, {
+    serverOffsetMs: radio.serverOffsetMs,
+    onNeedUnlock: v => { needUnlock.value = v },
+  })
+}
+
+function toggleListen() {
+  if (radio.listening) {
+    radio.setListening(false)
+    stopSong()
+    needUnlock.value = false
+    return
+  }
+  radio.setListening(true)
+  if (radio.current) {
+    playSong(radio.current, {
+      serverOffsetMs: radio.serverOffsetMs,
+      onNeedUnlock: v => { needUnlock.value = v },
+    })
+  }
+}
 
 function logout() {
   radio.closeSocket()
+  stopSong()
   auth.clear()
 }
 function saveStatus() { radio.setStatusText(draftStatus.value || '') }
@@ -100,7 +140,11 @@ const onlineDetails = computed(() => {
           <div class="bar-box-inner">
             <div class="bar-screen">
               <span class="bar-screen-dot"></span>
-              <span class="bar-screen-text">{{ radio.current ? radio.current.name : 'OFF AIR' }}</span>
+              <span class="bar-screen-text" v-if="radio.current">
+                <span class="bar-screen-title">{{ radio.current.title || radio.current.name }}</span>
+                <span class="bar-screen-artist" v-if="radio.current.artist"> · {{ radio.current.artist }}</span>
+              </span>
+              <span class="bar-screen-text muted" v-else>OFF AIR</span>
             </div>
             <div class="bar-knobs">
               <span class="knob"></span>
@@ -123,7 +167,17 @@ const onlineDetails = computed(() => {
           <div class="me-row">
             <Avatar :nick="auth.nickname" size="sm"/>
             <span style="font-size:15px">{{ auth.nickname }}</span>
-            <button class="pix-btn ghost" style="font-size:8px;padding:6px 8px;margin-left:auto" @click="logout">EXIT</button>
+            <button
+              class="pix-btn listen-btn"
+              :class="{ on: radio.listening }"
+              style="font-size:8px;padding:6px 8px;margin-left:auto"
+              @click="toggleListen"
+              :title="radio.listening ? '停止收听' : '在工区也跟着酒馆一起听'"
+            >
+              <span class="dot"></span>
+              {{ radio.listening ? 'LISTENING' : 'LISTEN' }}
+            </button>
+            <button class="pix-btn ghost" style="font-size:8px;padding:6px 8px" @click="logout">EXIT</button>
           </div>
           <div class="status-input">
             <input
@@ -134,6 +188,9 @@ const onlineDetails = computed(() => {
               @keydown.enter="saveStatus"
             />
             <button class="pix-btn" style="font-size:8px;padding:8px 10px" @click="saveStatus">SAVE</button>
+          </div>
+          <div v-if="needUnlock && radio.listening" class="unlock-hint" @click="toggleListen">
+            浏览器拦了自动播放 · 点 LISTENING 重试
           </div>
         </div>
       </header>
@@ -275,6 +332,8 @@ const onlineDetails = computed(() => {
   flex: 1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.bar-screen-title { color: var(--orange); }
+.bar-screen-artist { color: var(--olive); }
 .bar-knobs {
   display: flex; align-items: center; gap: 6px;
 }
@@ -337,6 +396,34 @@ const onlineDetails = computed(() => {
 .me-row { display: flex; align-items: center; gap: 8px; }
 .status-input { display: flex; gap: 6px; }
 .status-input .pix-input { flex: 1; }
+
+.listen-btn {
+  background: var(--bg-card);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.listen-btn .dot {
+  width: 6px; height: 6px;
+  background: var(--ink-mute);
+  border: 1px solid var(--ink);
+  display: inline-block;
+}
+.listen-btn.on { background: var(--green); }
+.listen-btn.on .dot {
+  background: var(--orange-d);
+  animation: listen-pulse 1.4s ease-in-out infinite;
+}
+@keyframes listen-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,115,62,0); }
+  50%      { box-shadow: 0 0 6px 2px rgba(212,115,62,0.7); }
+}
+.unlock-hint {
+  font-size: 12px; color: var(--orange-d);
+  background: var(--bg-soft);
+  border: 2px dashed var(--orange-d);
+  padding: 3px 6px;
+  cursor: pointer;
+  text-align: center;
+}
 
 /* —— Floor 卡片 + 网格 —— */
 .floor-card { padding: 10px; position: relative; }

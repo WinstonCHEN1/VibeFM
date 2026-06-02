@@ -40,6 +40,13 @@ const moodLabel = computed(() => {
 
     <div class="bubble" v-if="poke">{{ poke.emoji }}</div>
 
+    <!-- Paper Accept 横幅（贴在最顶上） -->
+    <div class="banner">
+      <span class="banner-edge l"></span>
+      <span class="banner-text">PAPER ACCEPT!</span>
+      <span class="banner-edge r"></span>
+    </div>
+
     <!-- 后墙：奖牌 + 挂钟 -->
     <div class="medal">
       <div class="ribbon"></div>
@@ -102,10 +109,13 @@ const moodLabel = computed(() => {
         <Avatar :nick="nick" size="sm"/>
         <div class="headphone" v-if="headphone"></div>
         <div class="zhead" v-if="sleeping">Z</div>
-        <!-- 嘴边叼根烟 + 上方飘烟雾 -->
+        <!-- 嘴边叼根烟 + 烟头处往上飘的烟雾 -->
         <div class="cig" v-if="!sleeping">
           <div class="cig-stick"></div>
           <div class="cig-ember"></div>
+          <span class="puff p1"></span>
+          <span class="puff p2"></span>
+          <span class="puff p3"></span>
         </div>
       </div>
       <div class="body"></div>
@@ -113,20 +123,21 @@ const moodLabel = computed(() => {
       <div class="arm-r"></div>
     </div>
 
-    <!-- 烟雾飘到屋顶 -->
-    <div class="smoke-trail" v-if="atDesk && !sleeping">
-      <span class="puff p1"></span>
-      <span class="puff p2"></span>
-      <span class="puff p3"></span>
+    <!-- QQ 企鹅守在地板上 -->
+    <div class="qq" :class="{ wobble: atDesk }">
+      <div class="qq-head">
+        <div class="qq-eye l"><div class="qq-pupil"></div></div>
+        <div class="qq-eye r"><div class="qq-pupil"></div></div>
+        <div class="qq-beak"></div>
+      </div>
+      <div class="qq-body">
+        <div class="qq-belly"></div>
+        <div class="qq-scarf"></div>
+      </div>
+      <div class="qq-foot l"></div>
+      <div class="qq-foot r"></div>
     </div>
 
-    <!-- 地上一只小橘猫（在线时摇尾巴） -->
-    <div class="cat" :class="{ active: atDesk }">
-      <div class="ear l"></div>
-      <div class="ear r"></div>
-      <div class="cat-body"></div>
-      <div class="tail"></div>
-    </div>
     <!-- 地上一本书 -->
     <div class="book"></div>
 
@@ -165,29 +176,29 @@ const moodLabel = computed(() => {
 }
 
 /* 奖牌 */
-.medal { position: absolute; left: 14px; top: 14px; width: 32px; height: 36px; }
+.medal { position: absolute; left: 10px; top: 22px; width: 28px; height: 32px; }
 .medal .ribbon {
-  position: absolute; left: 4px; top: 0;
+  position: absolute; left: 3px; top: 0;
   width: 0; height: 0;
-  border-left: 12px solid var(--orange-d);
-  border-right: 12px solid var(--orange-d);
-  border-bottom: 14px solid transparent;
+  border-left: 11px solid var(--orange-d);
+  border-right: 11px solid var(--orange-d);
+  border-bottom: 12px solid transparent;
 }
 .medal .coin {
-  position: absolute; left: 4px; top: 12px;
-  width: 24px; height: 24px;
+  position: absolute; left: 3px; top: 11px;
+  width: 22px; height: 22px;
   background: #E8B85A;
   border: 2px solid var(--ink);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-pix);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--ink);
 }
 
 .clock {
-  position: absolute; right: 14px; top: 14px;
-  width: 24px; height: 24px;
+  position: absolute; right: 10px; top: 22px;
+  width: 22px; height: 22px;
   background: var(--bg-card);
   border: 2px solid var(--ink);
   border-radius: 50%;
@@ -359,32 +370,25 @@ const moodLabel = computed(() => {
   50%      { background: #FFD37A; box-shadow: 0 0 4px 1px rgba(255,211,122,0.8); }
 }
 
-/* 飘往屋顶的烟雾 */
-.smoke-trail {
+/* 烟雾从烟头开始飘 */
+.cig .puff {
   position: absolute;
-  right: 28px;
-  bottom: calc(36% + 24px);
-  width: 14px; height: 60px;
-  pointer-events: none;
-  z-index: 1;
-}
-.smoke-trail .puff {
-  position: absolute;
-  bottom: 0; left: 4px;
-  width: 6px; height: 6px;
+  right: 0; top: 0;
+  width: 5px; height: 5px;
   border-radius: 50%;
   background: rgba(255,255,255,0.85);
   border: 1px solid var(--ink);
   opacity: 0;
+  pointer-events: none;
 }
-.smoke-trail .p1 { animation: puff 2.4s linear infinite; }
-.smoke-trail .p2 { animation: puff 2.4s linear infinite 0.8s; }
-.smoke-trail .p3 { animation: puff 2.4s linear infinite 1.6s; }
+.cig .p1 { animation: puff 2.2s linear infinite; }
+.cig .p2 { animation: puff 2.2s linear infinite 0.7s; }
+.cig .p3 { animation: puff 2.2s linear infinite 1.4s; }
 @keyframes puff {
-  0%   { transform: translate(0, 0)    scale(0.5); opacity: 0;   }
-  20%  {                                            opacity: 0.9; }
-  60%  { transform: translate(-4px, -28px) scale(1); opacity: 0.7; }
-  100% { transform: translate(-10px, -56px) scale(0.4); opacity: 0; }
+  0%   { transform: translate(0, 0)        scale(0.5); opacity: 0;   }
+  15%  {                                                opacity: 0.9; }
+  60%  { transform: translate(-3px, -16px) scale(1);    opacity: 0.7; }
+  100% { transform: translate(-8px, -34px) scale(0.4);  opacity: 0;   }
 }
 
 .person .body {
@@ -450,28 +454,125 @@ const moodLabel = computed(() => {
   100% { transform: translateY(-14px) scale(0.4); opacity: 0; }
 }
 
-/* 猫 + 书 */
-.cat {
-  position: absolute; right: 16px; bottom: 8px;
-  width: 26px; height: 18px;
+/* 横幅 + QQ 企鹅 + 地上的书 */
+/* Paper Accept 横幅 */
+.banner {
+  position: absolute;
+  left: 50%; top: 4px;
+  transform: translateX(-50%);
+  display: flex; align-items: center;
+  z-index: 4;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.4));
 }
-.cat .ear { position: absolute; top: -2px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 7px solid var(--ink); }
-.cat .ear.l { left: 2px; transform: rotate(-15deg); }
-.cat .ear.r { left: 14px; transform: rotate(15deg); }
-.cat-body { position: absolute; bottom: 0; left: 0; width: 22px; height: 14px; background: var(--orange); border: 2px solid var(--ink); border-radius: 7px 7px 5px 5px; }
-.tail {
-  position: absolute; right: -4px; bottom: 4px;
-  width: 10px; height: 4px;
-  background: var(--orange); border: 2px solid var(--ink);
-  transform-origin: left center;
+.banner-text {
+  font-family: var(--font-pix);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--bg-card);
+  background: var(--orange-d);
+  border: 2px solid var(--ink);
+  padding: 3px 8px;
+  white-space: nowrap;
+  animation: bannerWave 3s ease-in-out infinite;
 }
-.cat.active .tail { animation: wag 1.6s ease-in-out infinite; }
-@keyframes wag {
-  0%, 100% { transform: rotate(-10deg); }
-  50%      { transform: rotate(20deg); }
+@keyframes bannerWave {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1px); }
 }
+.banner-edge {
+  width: 0; height: 0;
+  border-top: 6px solid var(--orange-d);
+  border-bottom: 6px solid var(--orange-d);
+}
+.banner-edge.l { border-right: 6px solid transparent; border-left: 0; }
+.banner-edge.r { border-left:  6px solid transparent; border-right: 0; }
+
+/* QQ 企鹅 */
+.qq {
+  position: absolute;
+  right: 8px; bottom: 6px;
+  width: 22px; height: 30px;
+  z-index: 2;
+}
+.qq.wobble { animation: qqwobble 2.6s ease-in-out infinite; }
+@keyframes qqwobble {
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
+}
+.qq-head {
+  position: absolute;
+  left: 1px; top: 0;
+  width: 20px; height: 16px;
+  background: #1F1F1F;
+  border: 2px solid var(--ink);
+  border-radius: 10px 10px 7px 7px;
+}
+.qq-eye {
+  position: absolute;
+  top: 4px;
+  width: 5px; height: 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+}
+.qq-eye.l { left: 3px; }
+.qq-eye.r { right: 3px; }
+.qq-pupil {
+  position: absolute;
+  left: 1px; top: 1px;
+  width: 2px; height: 3px;
+  background: var(--ink);
+  animation: qqlook 3s ease-in-out infinite;
+}
+@keyframes qqlook {
+  0%, 40%, 100% { transform: translate(0, 0); }
+  60%, 80%      { transform: translate(2px, 0); }
+}
+.qq-beak {
+  position: absolute;
+  left: 50%; bottom: -3px;
+  width: 6px; height: 4px;
+  background: #E8B85A;
+  border: 1px solid var(--ink);
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+.qq-body {
+  position: absolute;
+  left: 0; top: 13px;
+  width: 22px; height: 16px;
+  background: #1F1F1F;
+  border: 2px solid var(--ink);
+  border-radius: 10px 10px 8px 8px;
+}
+.qq-belly {
+  position: absolute;
+  left: 4px; top: 3px; right: 4px;
+  height: 10px;
+  background: var(--bg-card);
+  border-radius: 50%;
+}
+.qq-scarf {
+  position: absolute;
+  left: -1px; top: -2px; right: -1px;
+  height: 4px;
+  background: #C45A4A;
+  border: 1px solid var(--ink);
+}
+.qq-foot {
+  position: absolute;
+  bottom: -3px;
+  width: 7px; height: 4px;
+  background: #E8B85A;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+}
+.qq-foot.l { left: 2px; }
+.qq-foot.r { right: 2px; }
+
+/* 地上的书 */
 .book {
-  position: absolute; left: 16px; bottom: 6px;
+  position: absolute; left: 8px; bottom: 6px;
   width: 16px; height: 5px;
   background: var(--green); border: 2px solid var(--ink);
   transform: rotate(-8deg);

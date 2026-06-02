@@ -12,6 +12,7 @@ export const useRadioStore = defineStore('radio', {
     presence: {},               // { nick: { location, text, last_seen } }
     statusText: localStorage.getItem(STATUS_KEY) || '',
     location: 'floor',          // 当前自己在哪个路由
+    listening: localStorage.getItem('fm_listening') === '1',  // Floor 是否跟酒馆同步播放
     chats: [],
     serverOffsetMs: 0,
     frozen: false,
@@ -113,6 +114,10 @@ export const useRadioStore = defineStore('radio', {
       if (loc !== 'floor' && loc !== 'bar') return
       this.location = loc
       this._sendPresence()
+    },
+    setListening(v) {
+      this.listening = !!v
+      localStorage.setItem('fm_listening', this.listening ? '1' : '0')
     },
     setStatusText(text) {
       const t = (text || '').slice(0, 20)

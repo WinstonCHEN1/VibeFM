@@ -130,6 +130,8 @@ const progressPct = computed(() => {
 const requesterColor = computed(() => pickColor(radio.current?.requester_nick))
 
 onMounted(() => {
+  // 进 FM 页 = 主动选择听歌；记下来好让 Floor 也能续上
+  radio.setListening(true)
   window.addEventListener('fm:songChange', onSongEvent)
   progressTimer = setInterval(tick, 500)
   radio.refreshState()
@@ -138,6 +140,12 @@ onUnmounted(() => {
   window.removeEventListener('fm:songChange', onSongEvent)
   clearInterval(progressTimer)
   removeUnlockListeners()
+  // 离开 FM 页：如果用户没在 Floor 也 LISTEN，就停掉
+  if (!radio.listening) {
+    audio.pause()
+    audio.removeAttribute('src')
+    audio.load()
+  }
 })
 </script>
 
