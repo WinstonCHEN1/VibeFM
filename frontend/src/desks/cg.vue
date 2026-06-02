@@ -102,10 +102,22 @@ const moodLabel = computed(() => {
         <Avatar :nick="nick" size="sm"/>
         <div class="headphone" v-if="headphone"></div>
         <div class="zhead" v-if="sleeping">Z</div>
+        <!-- 嘴边叼根烟 + 上方飘烟雾 -->
+        <div class="cig" v-if="!sleeping">
+          <div class="cig-stick"></div>
+          <div class="cig-ember"></div>
+        </div>
       </div>
       <div class="body"></div>
       <div class="arm-l"></div>
       <div class="arm-r"></div>
+    </div>
+
+    <!-- 烟雾飘到屋顶 -->
+    <div class="smoke-trail" v-if="atDesk && !sleeping">
+      <span class="puff p1"></span>
+      <span class="puff p2"></span>
+      <span class="puff p3"></span>
     </div>
 
     <!-- 地上一只小橘猫（在线时摇尾巴） -->
@@ -320,6 +332,59 @@ const moodLabel = computed(() => {
   position: absolute; left: -8px; top: -10px;
   font-family: var(--font-pix); font-size: 9px; color: var(--ink-soft);
   animation: zzzfade 2s ease-in-out infinite;
+}
+
+/* 嘴边的香烟 */
+.cig {
+  position: absolute;
+  right: -7px; top: 60%;
+  width: 12px; height: 4px;
+  z-index: 3;
+}
+.cig-stick {
+  position: absolute; left: 0; top: 0;
+  width: 9px; height: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--ink);
+}
+.cig-ember {
+  position: absolute; right: 0; top: 0;
+  width: 3px; height: 3px;
+  background: var(--orange-d);
+  border: 1px solid var(--ink);
+  animation: ember 1.4s ease-in-out infinite;
+}
+@keyframes ember {
+  0%, 100% { background: var(--orange-d); box-shadow: 0 0 0 0 rgba(212,115,62,0); }
+  50%      { background: #FFD37A; box-shadow: 0 0 4px 1px rgba(255,211,122,0.8); }
+}
+
+/* 飘往屋顶的烟雾 */
+.smoke-trail {
+  position: absolute;
+  right: 28px;
+  bottom: calc(36% + 24px);
+  width: 14px; height: 60px;
+  pointer-events: none;
+  z-index: 1;
+}
+.smoke-trail .puff {
+  position: absolute;
+  bottom: 0; left: 4px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid var(--ink);
+  opacity: 0;
+}
+.smoke-trail .p1 { animation: puff 2.4s linear infinite; }
+.smoke-trail .p2 { animation: puff 2.4s linear infinite 0.8s; }
+.smoke-trail .p3 { animation: puff 2.4s linear infinite 1.6s; }
+@keyframes puff {
+  0%   { transform: translate(0, 0)    scale(0.5); opacity: 0;   }
+  20%  {                                            opacity: 0.9; }
+  60%  { transform: translate(-4px, -28px) scale(1); opacity: 0.7; }
+  100% { transform: translate(-10px, -56px) scale(0.4); opacity: 0; }
 }
 
 .person .body {
