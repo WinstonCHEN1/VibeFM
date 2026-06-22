@@ -41,18 +41,6 @@ const moodLabel = computed(() => {
       <span> poke!</span>
     </div>
 
-    <div class="neon-heart">
-      <span class="heart-pixel p1"></span>
-      <span class="heart-pixel p2"></span>
-      <span class="heart-pixel p3"></span>
-      <span class="heart-pixel p4"></span>
-      <span class="heart-pixel p5"></span>
-      <span class="heart-pixel p6"></span>
-      <span class="heart-pixel p7"></span>
-      <span class="heart-pixel p8"></span>
-      <span class="heart-pixel p9"></span>
-    </div>
-
     <div class="poster-card">
       <span class="poster-title">VIVID</span>
       <span class="poster-chip">STAGE</span>
@@ -161,11 +149,7 @@ const moodLabel = computed(() => {
       <span class="plush-spark">✦</span>
     </div>
 
-    <div class="floor-bow">
-      <span class="knot"></span>
-      <span class="tail left"></span>
-      <span class="tail right"></span>
-    </div>
+    <img class="khn-standee" src="./khn.webp" alt="" aria-hidden="true" />
 
     <div class="note-out" v-if="inBar">♪</div>
     <div class="bar-tag" v-if="inBar">在酒馆</div>
@@ -236,39 +220,10 @@ const moodLabel = computed(() => {
   background: rgba(255,248,236,0.75);
 }
 
-.neon-heart {
-  position: absolute;
-  left: 13px;
-  top: 13px;
-  width: 38px;
-  height: 34px;
-  z-index: 4;
-}
-.heart-pixel {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #F4A8B8;
-  border: 1px solid var(--ink);
-  animation: heartGlow 1.8s ease-in-out infinite;
-}
-.heart-pixel.p1 { left: 8px; top: 0; }
-.heart-pixel.p2 { left: 24px; top: 0; animation-delay: 0.1s; }
-.heart-pixel.p3 { left: 0; top: 8px; animation-delay: 0.2s; }
-.heart-pixel.p4 { left: 16px; top: 8px; animation-delay: 0.3s; }
-.heart-pixel.p5 { left: 32px; top: 8px; animation-delay: 0.4s; }
-.heart-pixel.p6 { left: 8px; top: 16px; animation-delay: 0.5s; }
-.heart-pixel.p7 { left: 24px; top: 16px; animation-delay: 0.6s; }
-.heart-pixel.p8 { left: 16px; top: 24px; animation-delay: 0.7s; }
-.heart-pixel.p9 { left: 16px; top: 8px; background: #FFF8EC; }
-@keyframes heartGlow {
-  0%, 100% { filter: brightness(0.95); }
-  50% { filter: brightness(1.32); }
-}
 
 .poster-card {
   position: absolute;
-  left: 56px;
+  left: 14px;
   top: 14px;
   width: 50px;
   height: 42px;
@@ -961,39 +916,16 @@ const moodLabel = computed(() => {
   50% { transform: translateY(-2px); }
 }
 
-.floor-bow {
+.khn-standee {
   position: absolute;
-  right: 15px;
-  bottom: 11px;
-  width: 29px;
-  height: 20px;
-  z-index: 5;
-}
-.knot {
-  position: absolute;
-  left: 10px;
-  top: 6px;
-  width: 8px;
-  height: 8px;
-  background: #F6B8C6;
-  border: 2px solid var(--ink);
-  z-index: 2;
-}
-.tail {
-  position: absolute;
-  top: 3px;
-  width: 15px;
-  height: 12px;
-  background: #F6B8C6;
-  border: 2px solid var(--ink);
-}
-.tail.left {
-  left: 0;
-  clip-path: polygon(0 0, 100% 50%, 0 100%, 20% 50%);
-}
-.tail.right {
-  right: 0;
-  clip-path: polygon(100% 0, 0 50%, 100% 100%, 80% 50%);
+  right: 1px;
+  bottom: 3px;
+  width: 56px;
+  height: auto;
+  z-index: 12;
+  pointer-events: none;
+  image-rendering: auto;
+  filter: drop-shadow(2px 2px 0 rgba(61,46,31,0.38));
 }
 
 .note-out {
