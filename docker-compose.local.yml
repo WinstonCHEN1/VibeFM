@@ -1,0 +1,7 @@
+services:
+  frontend:
+    ports: !override
+      - "127.0.0.1:8088:80"
+  netease-api:
+    environment:
+      - REAL_IP=119.29.29.29
