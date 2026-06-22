@@ -16,16 +16,16 @@ const atDesk = computed(() => props.online && props.location !== 'bar')
 const offline = computed(() => !props.online)
 const txt = computed(() => (props.text || '').toLowerCase())
 const sleeping = computed(() => /z+|睡|sleep|afk|休息|困|眠|🛌|💤/.test(txt.value))
-const coffee = computed(() => /☕|咖啡|coffee|续命|energy|补魔/.test(txt.value))
-const headphone = computed(() => /🎧|listen|听歌|music|fm|歌|耳机/.test(txt.value))
+const coffee = computed(() => /☕|咖啡|coffee|续命|energy|补魔|奶茶/.test(txt.value))
+const headphone = computed(() => /🎧|listen|听歌|music|fm|歌|耳机|live/.test(txt.value))
 
 const moodLabel = computed(() => {
-  if (offline.value) return 'offline'
+  if (offline.value) return 'soft off'
   if (inBar.value) return '去听歌啦'
-  if (sleeping.value) return '小睡充电'
-  if (coffee.value) return '能量补给'
-  if (headphone.value) return 'live mode'
-  return props.text || 'ready!'
+  if (sleeping.value) return '粉色充电'
+  if (coffee.value) return '甜甜补给'
+  if (headphone.value) return 'live ready'
+  return props.text || 'pink setup'
 })
 </script>
 
@@ -33,6 +33,7 @@ const moodLabel = computed(() => {
   <div class="cube" :class="{ offline, me: isMe, bar: inBar, sleep: sleeping }">
     <div class="wall"></div>
     <div class="floor"></div>
+    <div class="rug"></div>
 
     <div class="bubble" v-if="poke">{{ poke.emoji }}</div>
     <div class="poke-tip" v-if="poke">
@@ -40,64 +41,79 @@ const moodLabel = computed(() => {
       <span> poke!</span>
     </div>
 
-    <div class="poster">
-      <span class="poster-star">✦</span>
-      <span class="poster-title">VIVID</span>
-      <span class="poster-line a"></span>
-      <span class="poster-line b"></span>
-      <span class="poster-line c"></span>
+    <div class="neon-heart">
+      <span class="heart-pixel p1"></span>
+      <span class="heart-pixel p2"></span>
+      <span class="heart-pixel p3"></span>
+      <span class="heart-pixel p4"></span>
+      <span class="heart-pixel p5"></span>
+      <span class="heart-pixel p6"></span>
+      <span class="heart-pixel p7"></span>
+      <span class="heart-pixel p8"></span>
+      <span class="heart-pixel p9"></span>
     </div>
 
-    <div class="neon-rail">
-      <span class="light l1"></span>
-      <span class="light l2"></span>
-      <span class="light l3"></span>
-      <span class="light l4"></span>
+    <div class="poster-card">
+      <span class="poster-title">VIVID</span>
+      <span class="poster-chip">STAGE</span>
+      <span class="poster-line a"></span>
+      <span class="poster-line b"></span>
+      <span class="poster-star">✦</span>
+    </div>
+
+    <div class="light-string">
+      <span class="cord"></span>
+      <span class="bulb b1"></span>
+      <span class="bulb b2"></span>
+      <span class="bulb b3"></span>
+      <span class="bulb b4"></span>
     </div>
 
     <div class="shelf">
-      <span class="box pink"></span>
-      <span class="box blue"></span>
-      <span class="box green"></span>
-      <span class="mini-stand"></span>
+      <span class="mini-box a"></span>
+      <span class="mini-box b"></span>
+      <span class="mini-box c"></span>
+      <span class="standee"></span>
     </div>
 
-    <div class="note-out" v-if="inBar">♪</div>
-
     <div class="pc-tower" :class="{ on: atDesk && !sleeping }">
+      <span class="glass"></span>
       <span class="fan top"></span>
       <span class="fan bottom"></span>
       <span class="gpu"></span>
       <span class="rgb-strip"></span>
     </div>
 
-    <div class="desk-top"></div>
     <div class="desk-leg l"></div>
     <div class="desk-leg r"></div>
+    <div class="desk-top"></div>
+    <div class="desk-front"></div>
+    <div class="desk-shine"></div>
 
     <div class="monitor-stack">
       <div class="monitor main" :class="{ on: atDesk && !sleeping, dim: offline || inBar || sleeping }">
         <template v-if="atDesk && !sleeping">
-          <span class="sky"></span>
-          <span class="stage-light a"></span>
-          <span class="stage-light b"></span>
-          <span class="beat beat1"></span>
-          <span class="beat beat2"></span>
-          <span class="beat beat3"></span>
-          <span class="hud">LIVE</span>
+          <span class="screen-bg"></span>
+          <span class="stage-beam left"></span>
+          <span class="stage-beam right"></span>
+          <span class="eq e1"></span>
+          <span class="eq e2"></span>
+          <span class="eq e3"></span>
+          <span class="screen-label">LIVE</span>
         </template>
         <span class="zzz" v-if="sleeping">z</span>
       </div>
       <div class="monitor side" :class="{ on: atDesk && !sleeping, dim: offline || inBar || sleeping }">
         <template v-if="atDesk && !sleeping">
-          <span class="rank">S</span>
-          <span class="bar a"></span>
-          <span class="bar b"></span>
-          <span class="bar c"></span>
+          <span class="side-rank">S</span>
+          <span class="side-line a"></span>
+          <span class="side-line b"></span>
+          <span class="side-line c"></span>
         </template>
       </div>
     </div>
 
+    <div class="monitor-stand"></div>
     <div class="keyboard" :class="{ glow: atDesk && !sleeping }">
       <span class="key k1"></span>
       <span class="key k2"></span>
@@ -114,8 +130,9 @@ const moodLabel = computed(() => {
       <span class="mic-base"></span>
     </div>
 
-    <div class="energy" v-if="coffee && atDesk">
-      <span class="can"></span>
+    <div class="sweet-drink" v-if="coffee && atDesk">
+      <span class="cup"></span>
+      <span class="straw"></span>
       <span class="spark s1"></span>
       <span class="spark s2"></span>
     </div>
@@ -129,7 +146,7 @@ const moodLabel = computed(() => {
     <div class="person" v-if="atDesk" :class="{ typing: !sleeping && !coffee, sleeping, sipping: coffee }">
       <div class="head-wrap">
         <Avatar :nick="nick" size="sm"/>
-        <span class="soft-bow"></span>
+        <span class="hair-bow"></span>
         <span class="headphone" v-if="headphone"></span>
         <span class="zhead" v-if="sleeping">Z</span>
       </div>
@@ -138,11 +155,19 @@ const moodLabel = computed(() => {
       <span class="sleeve right"></span>
     </div>
 
-    <div class="desk-charm">
-      <span class="charm-face"></span>
-      <span class="charm-spark">✦</span>
+    <div class="plush">
+      <span class="plush-head"></span>
+      <span class="plush-body"></span>
+      <span class="plush-spark">✦</span>
     </div>
 
+    <div class="floor-bow">
+      <span class="knot"></span>
+      <span class="tail left"></span>
+      <span class="tail right"></span>
+    </div>
+
+    <div class="note-out" v-if="inBar">♪</div>
     <div class="bar-tag" v-if="inBar">在酒馆</div>
     <div class="nameplate"><span>{{ nick }}</span></div>
     <div class="status">{{ moodLabel }}</div>
@@ -157,19 +182,26 @@ const moodLabel = computed(() => {
   border: 3px solid var(--ink);
   overflow: visible;
   image-rendering: pixelated;
-  background: #F3D8B5;
+  background: #F8D8D7;
 }
 .cube.me { box-shadow: 0 0 0 2px var(--orange-d); }
-.cube.offline { filter: grayscale(0.58); opacity: 0.68; }
+.cube.offline { filter: grayscale(0.55); opacity: 0.68; }
 
 .wall {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255,248,236,0.45) 0 8px, transparent 8px 20px),
-    radial-gradient(circle, rgba(255,248,236,0.9) 0 2px, transparent 2px 100%) 8px 8px / 23px 23px,
-    #F3D8B5;
+    radial-gradient(circle, rgba(255,248,236,0.95) 0 2px, transparent 2px 100%) 9px 8px / 22px 22px,
+    repeating-linear-gradient(90deg, rgba(255,248,236,0.34) 0 8px, transparent 8px 18px),
+    #F8D8D7;
   pointer-events: none;
+}
+.wall::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(45deg, transparent 0 45%, rgba(255,248,236,0.24) 45% 55%, transparent 55% 100%) 0 0 / 28px 28px;
 }
 .floor {
   position: absolute;
@@ -177,40 +209,92 @@ const moodLabel = computed(() => {
   right: 0;
   bottom: 0;
   height: 38%;
-  background: #C99668;
+  background: #D9A077;
   border-top: 3px solid var(--ink);
   background-image:
-    repeating-linear-gradient(90deg, rgba(61,46,31,0.16) 0 2px, transparent 2px 22px),
-    linear-gradient(rgba(255,255,255,0.08), transparent);
+    repeating-linear-gradient(90deg, rgba(61,46,31,0.15) 0 2px, transparent 2px 22px),
+    linear-gradient(rgba(255,255,255,0.12), transparent);
+}
+.rug {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 3px;
+  height: 22px;
+  background: #F5B9C8;
+  border: 2px solid var(--ink);
+  border-radius: 10px 10px 2px 2px;
+  z-index: 1;
+}
+.rug::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 7px;
+  height: 3px;
+  background: rgba(255,248,236,0.75);
 }
 
-.poster {
+.neon-heart {
   position: absolute;
-  left: 12px;
+  left: 13px;
   top: 13px;
-  width: 52px;
-  height: 44px;
-  background: linear-gradient(135deg, #FFF8EC 0 42%, #F4A8B8 43% 66%, #96C8D8 67% 100%);
-  border: 2px solid var(--ink);
-  box-shadow: 2px 2px 0 rgba(61,46,31,0.16);
-  overflow: hidden;
+  width: 38px;
+  height: 34px;
+  z-index: 4;
 }
-.poster-star {
+.heart-pixel {
   position: absolute;
-  right: 5px;
-  top: 4px;
-  font-family: var(--font-pix);
-  font-size: 8px;
-  color: var(--orange-d);
-  animation: starPop 1.8s ease-in-out infinite;
+  width: 8px;
+  height: 8px;
+  background: #F4A8B8;
+  border: 1px solid var(--ink);
+  animation: heartGlow 1.8s ease-in-out infinite;
+}
+.heart-pixel.p1 { left: 8px; top: 0; }
+.heart-pixel.p2 { left: 24px; top: 0; animation-delay: 0.1s; }
+.heart-pixel.p3 { left: 0; top: 8px; animation-delay: 0.2s; }
+.heart-pixel.p4 { left: 16px; top: 8px; animation-delay: 0.3s; }
+.heart-pixel.p5 { left: 32px; top: 8px; animation-delay: 0.4s; }
+.heart-pixel.p6 { left: 8px; top: 16px; animation-delay: 0.5s; }
+.heart-pixel.p7 { left: 24px; top: 16px; animation-delay: 0.6s; }
+.heart-pixel.p8 { left: 16px; top: 24px; animation-delay: 0.7s; }
+.heart-pixel.p9 { left: 16px; top: 8px; background: #FFF8EC; }
+@keyframes heartGlow {
+  0%, 100% { filter: brightness(0.95); }
+  50% { filter: brightness(1.32); }
+}
+
+.poster-card {
+  position: absolute;
+  left: 56px;
+  top: 14px;
+  width: 50px;
+  height: 42px;
+  background: linear-gradient(135deg, #FFF8EC 0 38%, #F6B8C6 39% 68%, #B7DCE6 69% 100%);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 rgba(61,46,31,0.14);
+  z-index: 3;
 }
 .poster-title {
   position: absolute;
   left: 6px;
-  top: 7px;
+  top: 6px;
   font-family: var(--font-pix);
   font-size: 7px;
   color: var(--ink);
+}
+.poster-chip {
+  position: absolute;
+  right: 5px;
+  top: 17px;
+  font-family: var(--font-pix);
+  font-size: 5px;
+  color: var(--bg-card);
+  background: #7B617A;
+  border: 1px solid var(--ink);
+  padding: 2px 3px;
 }
 .poster-line {
   position: absolute;
@@ -218,127 +302,143 @@ const moodLabel = computed(() => {
   height: 3px;
   background: var(--ink);
 }
-.poster-line.a { top: 23px; width: 32px; }
-.poster-line.b { top: 30px; width: 23px; background: var(--green); }
-.poster-line.c { top: 36px; width: 36px; background: var(--orange); }
+.poster-line.a { top: 24px; width: 20px; }
+.poster-line.b { top: 31px; width: 34px; background: #96C8D8; }
+.poster-star {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  font-family: var(--font-pix);
+  font-size: 7px;
+  color: var(--orange-d);
+  animation: starPop 1.7s ease-in-out infinite;
+}
 @keyframes starPop {
   0%, 100% { transform: scale(0.9); opacity: 0.55; }
-  50% { transform: scale(1.15); opacity: 1; }
+  50% { transform: scale(1.18); opacity: 1; }
 }
 
-.neon-rail {
+.light-string {
   position: absolute;
-  left: 74px;
+  right: 11px;
   top: 13px;
-  width: 94px;
-  height: 21px;
-  border-top: 2px solid var(--ink);
-  border-radius: 0 0 48px 48px;
+  width: 76px;
+  height: 30px;
+  z-index: 4;
 }
-.light {
+.cord {
   position: absolute;
-  top: 4px;
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 18px;
+  border-top: 2px solid var(--ink);
+  border-radius: 0 0 40px 40px;
+}
+.bulb {
+  position: absolute;
+  top: 10px;
   width: 9px;
   height: 9px;
   border: 1px solid var(--ink);
   transform: rotate(45deg);
-  animation: neonBlink 1.7s ease-in-out infinite;
+  animation: bulbTwinkle 1.5s ease-in-out infinite;
 }
-.light.l1 { left: 5px; background: #F4A8B8; }
-.light.l2 { left: 31px; background: #96C8D8; animation-delay: 0.25s; }
-.light.l3 { left: 58px; background: var(--orange); animation-delay: 0.5s; }
-.light.l4 { right: 1px; background: var(--green); animation-delay: 0.75s; }
-@keyframes neonBlink {
-  0%, 100% { filter: brightness(0.9); }
-  50% { filter: brightness(1.35); }
+.bulb.b1 { left: 5px; background: #F6B8C6; }
+.bulb.b2 { left: 25px; background: #B7DCE6; animation-delay: 0.18s; }
+.bulb.b3 { left: 47px; background: #FFF1A8; animation-delay: 0.36s; }
+.bulb.b4 { right: 2px; background: #BFE2C3; animation-delay: 0.54s; }
+@keyframes bulbTwinkle {
+  0%, 100% { filter: brightness(0.95); }
+  50% { filter: brightness(1.28); }
 }
 
 .shelf {
   position: absolute;
-  left: 78px;
-  top: 47px;
-  width: 56px;
-  height: 28px;
-  border-bottom: 4px solid #6E3A2A;
-  z-index: 2;
+  right: 17px;
+  top: 49px;
+  width: 55px;
+  height: 29px;
+  border-bottom: 4px solid #7A4C39;
+  z-index: 3;
 }
-.box {
+.mini-box {
   position: absolute;
   bottom: 4px;
-  width: 10px;
+  width: 9px;
   border: 1px solid var(--ink);
 }
-.box.pink { left: 2px; height: 17px; background: #F4A8B8; }
-.box.blue { left: 14px; height: 13px; background: #96C8D8; }
-.box.green { left: 26px; height: 16px; background: var(--green); }
-.mini-stand {
+.mini-box.a { left: 3px; height: 15px; background: #F6B8C6; }
+.mini-box.b { left: 14px; height: 19px; background: #FFF1A8; }
+.mini-box.c { left: 25px; height: 13px; background: #B7DCE6; }
+.standee {
   position: absolute;
-  right: 1px;
+  right: 2px;
   bottom: 4px;
-  width: 15px;
-  height: 20px;
-  background: var(--bg-card);
+  width: 14px;
+  height: 21px;
+  background: #FFF8EC;
   border: 1px solid var(--ink);
-  clip-path: polygon(50% 0, 90% 24%, 78% 100%, 22% 100%, 10% 24%);
+  clip-path: polygon(50% 0, 90% 28%, 78% 100%, 22% 100%, 10% 28%);
 }
-.mini-stand::after {
+.standee::after {
   content: '';
   position: absolute;
-  left: 5px;
-  top: 6px;
-  width: 5px;
-  height: 5px;
-  background: #F4A8B8;
+  left: 4px;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  background: #F6B8C6;
 }
 
 .pc-tower {
   position: absolute;
   right: 13px;
-  bottom: calc(36% + 2px);
+  bottom: calc(36% + 1px);
   width: 30px;
-  height: 54px;
-  background: rgba(255,248,236,0.72);
+  height: 56px;
+  background: #FFF8EC;
   border: 2px solid var(--ink);
-  z-index: 5;
+  z-index: 7;
   overflow: hidden;
 }
-.pc-tower::before {
-  content: '';
+.glass {
   position: absolute;
-  inset: 3px;
+  inset: 4px;
+  background: rgba(183,220,230,0.22);
   border: 1px solid rgba(61,46,31,0.35);
 }
 .fan {
   position: absolute;
-  left: 6px;
-  width: 14px;
-  height: 14px;
+  left: 7px;
+  width: 13px;
+  height: 13px;
   border: 2px solid var(--ink);
   border-radius: 50%;
   background:
-    linear-gradient(90deg, transparent 0 43%, var(--ink) 44% 56%, transparent 57% 100%),
-    linear-gradient(0deg, transparent 0 43%, var(--ink) 44% 56%, transparent 57% 100%),
-    #96C8D8;
+    linear-gradient(90deg, transparent 0 42%, var(--ink) 43% 57%, transparent 58% 100%),
+    linear-gradient(0deg, transparent 0 42%, var(--ink) 43% 57%, transparent 58% 100%),
+    #F6B8C6;
 }
-.fan.top { top: 7px; }
-.fan.bottom { top: 29px; background-color: #F4A8B8; }
-.pc-tower.on .fan { animation: fanSpin 1.1s linear infinite; }
+.fan.top { top: 8px; }
+.fan.bottom { top: 30px; background-color: #B7DCE6; }
+.pc-tower.on .fan { animation: fanSpin 1.05s linear infinite; }
 @keyframes fanSpin { to { transform: rotate(360deg); } }
 .gpu {
   position: absolute;
-  left: 4px;
-  bottom: 3px;
-  width: 20px;
+  left: 5px;
+  bottom: 4px;
+  width: 19px;
   height: 4px;
   background: var(--ink);
 }
 .rgb-strip {
   position: absolute;
   right: 2px;
-  top: 4px;
+  top: 5px;
   width: 4px;
-  height: 46px;
-  background: linear-gradient(#F4A8B8, #96C8D8, var(--green), var(--orange));
+  height: 47px;
+  background: linear-gradient(#F6B8C6, #B7DCE6, #FFF1A8, #BFE2C3);
 }
 
 .desk-top {
@@ -346,82 +446,113 @@ const moodLabel = computed(() => {
   left: 14px;
   right: 14px;
   bottom: 36%;
-  height: 10px;
-  background: #6E3A2A;
+  height: 11px;
+  background: #8A5541;
   border: 2px solid var(--ink);
-  z-index: 4;
+  z-index: 6;
+}
+.desk-top::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: 2px;
+  height: 2px;
+  background: rgba(255,248,236,0.35);
+}
+.desk-front {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: calc(36% - 12px);
+  height: 14px;
+  background: #A76850;
+  border-left: 2px solid var(--ink);
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  z-index: 5;
+}
+.desk-shine {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: calc(36% - 4px);
+  height: 2px;
+  background: rgba(255,248,236,0.35);
+  z-index: 6;
 }
 .desk-leg {
   position: absolute;
-  bottom: calc(36% - 22px);
-  width: 6px;
-  height: 18px;
-  background: #6E3A2A;
+  bottom: calc(36% - 37px);
+  width: 7px;
+  height: 38px;
+  background: #8A5541;
   border: 2px solid var(--ink);
+  z-index: 4;
 }
-.desk-leg.l { left: 24px; }
-.desk-leg.r { right: 24px; }
+.desk-leg.l { left: 23px; }
+.desk-leg.r { right: 23px; }
 
 .monitor-stack {
   position: absolute;
-  left: 50%;
-  bottom: calc(36% + 7px);
+  left: 51%;
+  bottom: calc(36% + 8px);
   transform: translateX(-50%);
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  z-index: 6;
+  z-index: 8;
 }
 .monitor {
   position: relative;
-  background: #211E2C;
+  background: #241A30;
   border: 2px solid var(--ink);
   overflow: hidden;
 }
-.monitor.main { width: 54px; height: 36px; }
+.monitor.main { width: 55px; height: 36px; }
 .monitor.side { width: 28px; height: 28px; }
-.monitor.dim { background: #101318; }
+.monitor.dim { background: #121018; }
 .monitor.on { box-shadow: inset 0 0 0 1px rgba(255,248,236,0.5); }
-.sky {
+.screen-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(#704A78 0 38%, #F4A8B8 39% 58%, #2A344F 59% 100%);
+  background: linear-gradient(#8B5C89 0 34%, #F6B8C6 35% 58%, #3B456C 59% 100%);
 }
-.stage-light {
+.stage-beam {
   position: absolute;
-  top: -3px;
-  width: 22px;
+  top: -4px;
+  width: 24px;
   height: 42px;
-  opacity: 0.7;
+  opacity: 0.72;
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
-.stage-light.a { left: 4px; background: rgba(150,200,216,0.7); animation: sweepA 2.4s ease-in-out infinite; }
-.stage-light.b { right: 3px; background: rgba(244,168,184,0.7); animation: sweepB 2.4s ease-in-out infinite; }
-@keyframes sweepA {
+.stage-beam.left { left: 4px; background: rgba(183,220,230,0.72); animation: sweepLeft 2.3s ease-in-out infinite; }
+.stage-beam.right { right: 3px; background: rgba(246,184,198,0.78); animation: sweepRight 2.3s ease-in-out infinite; }
+@keyframes sweepLeft {
   0%, 100% { transform: skewX(-8deg); }
   50% { transform: skewX(10deg); }
 }
-@keyframes sweepB {
+@keyframes sweepRight {
   0%, 100% { transform: skewX(8deg); }
   50% { transform: skewX(-10deg); }
 }
-.beat {
+.eq {
   position: absolute;
   bottom: 4px;
   width: 4px;
-  background: var(--orange);
+  background: #FFF1A8;
   border-left: 1px solid var(--ink);
   border-right: 1px solid var(--ink);
-  animation: beat 0.72s ease-in-out infinite;
+  animation: eqPulse 0.72s ease-in-out infinite;
 }
-.beat1 { left: 7px; height: 8px; }
-.beat2 { left: 15px; height: 14px; animation-delay: 0.14s; }
-.beat3 { left: 23px; height: 10px; animation-delay: 0.28s; }
-@keyframes beat {
+.eq.e1 { left: 7px; height: 8px; }
+.eq.e2 { left: 15px; height: 14px; animation-delay: 0.14s; }
+.eq.e3 { left: 23px; height: 10px; animation-delay: 0.28s; }
+@keyframes eqPulse {
   0%, 100% { transform: scaleY(0.5); transform-origin: bottom; }
   50% { transform: scaleY(1); transform-origin: bottom; }
 }
-.hud {
+.screen-label {
   position: absolute;
   right: 3px;
   top: 4px;
@@ -429,23 +560,23 @@ const moodLabel = computed(() => {
   font-size: 6px;
   color: var(--bg-card);
 }
-.rank {
+.side-rank {
   position: absolute;
   left: 6px;
   top: 4px;
   font-family: var(--font-pix);
   font-size: 12px;
-  color: #F4A8B8;
+  color: #F6B8C6;
 }
-.bar {
+.side-line {
   position: absolute;
   left: 5px;
   height: 3px;
   background: var(--bg-card);
 }
-.bar.a { bottom: 5px; width: 18px; }
-.bar.b { bottom: 10px; width: 12px; background: #96C8D8; }
-.bar.c { bottom: 15px; width: 16px; background: var(--green); }
+.side-line.a { bottom: 5px; width: 18px; }
+.side-line.b { bottom: 10px; width: 12px; background: #B7DCE6; }
+.side-line.c { bottom: 15px; width: 16px; background: #BFE2C3; }
 .zzz {
   position: absolute;
   right: 5px;
@@ -455,21 +586,31 @@ const moodLabel = computed(() => {
   color: var(--olive);
   animation: zfloat 2s ease-in-out infinite;
 }
+.monitor-stand {
+  position: absolute;
+  left: 50%;
+  bottom: calc(36% + 3px);
+  width: 22px;
+  height: 7px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  z-index: 7;
+}
 
 .keyboard {
   position: absolute;
   left: 48%;
-  bottom: calc(36% - 4px);
+  bottom: calc(36% - 3px);
   transform: translateX(-50%);
-  width: 58px;
+  width: 59px;
   height: 8px;
   background: #2A1F2D;
   border: 2px solid var(--ink);
-  z-index: 7;
   display: flex;
-  gap: 3px;
   align-items: center;
   justify-content: center;
+  gap: 3px;
+  z-index: 9;
 }
 .key {
   width: 6px;
@@ -477,40 +618,40 @@ const moodLabel = computed(() => {
   border: 1px solid var(--ink);
   background: var(--bg-card);
 }
-.keyboard.glow .k1 { background: #F4A8B8; }
-.keyboard.glow .k2 { background: #96C8D8; }
-.keyboard.glow .k3 { background: var(--green); }
-.keyboard.glow .k4 { background: var(--orange); }
-.keyboard.glow .k5 { background: var(--bg-card); }
+.keyboard.glow .k1 { background: #F6B8C6; }
+.keyboard.glow .k2 { background: #B7DCE6; }
+.keyboard.glow .k3 { background: #FFF1A8; }
+.keyboard.glow .k4 { background: #BFE2C3; }
+.keyboard.glow .k5 { background: #FFF8EC; }
 .mousepad {
   position: absolute;
-  right: 43px;
-  bottom: calc(36% - 2px);
-  width: 20px;
+  right: 42px;
+  bottom: calc(36% - 1px);
+  width: 21px;
   height: 10px;
-  background: #47314B;
+  background: #6F496A;
   border: 2px solid var(--ink);
-  z-index: 6;
+  z-index: 8;
 }
 .mouse {
   position: absolute;
   right: 48px;
-  bottom: calc(36% + 1px);
+  bottom: calc(36% + 2px);
   width: 8px;
   height: 6px;
   background: #FFF8EC;
   border: 1px solid var(--ink);
   border-radius: 5px 5px 2px 2px;
-  z-index: 7;
+  z-index: 9;
 }
 
 .mic {
   position: absolute;
-  left: 30px;
+  left: 31px;
   bottom: calc(36% + 3px);
   width: 21px;
-  height: 35px;
-  z-index: 6;
+  height: 34px;
+  z-index: 8;
 }
 .mic-head {
   position: absolute;
@@ -529,7 +670,7 @@ const moodLabel = computed(() => {
   top: 3px;
   width: 4px;
   height: 7px;
-  background: #96C8D8;
+  background: #F6B8C6;
 }
 .mic-arm {
   position: absolute;
@@ -549,31 +690,40 @@ const moodLabel = computed(() => {
   background: var(--ink);
 }
 
-.energy {
+.sweet-drink {
   position: absolute;
-  left: 52px;
-  bottom: calc(36% + 6px);
-  width: 16px;
-  height: 24px;
-  z-index: 8;
+  left: 53px;
+  bottom: calc(36% + 5px);
+  width: 17px;
+  height: 25px;
+  z-index: 10;
 }
-.can {
+.cup {
   position: absolute;
   left: 3px;
   bottom: 0;
-  width: 11px;
-  height: 18px;
-  background: linear-gradient(#96C8D8 0 46%, #F4A8B8 47% 100%);
+  width: 12px;
+  height: 17px;
+  background: linear-gradient(#FFF8EC 0 35%, #F6B8C6 36% 100%);
   border: 2px solid var(--ink);
 }
-.can::after {
+.cup::after {
   content: '';
   position: absolute;
   left: 3px;
-  top: 6px;
+  bottom: 3px;
   width: 4px;
   height: 4px;
-  background: var(--bg-card);
+  background: #B7DCE6;
+}
+.straw {
+  position: absolute;
+  left: 9px;
+  top: 0;
+  width: 2px;
+  height: 13px;
+  background: var(--ink);
+  transform: rotate(14deg);
 }
 .spark {
   position: absolute;
@@ -593,51 +743,60 @@ const moodLabel = computed(() => {
 .chair {
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: 5px;
   transform: translateX(-50%);
-  width: 40px;
-  height: 36px;
+  width: 42px;
+  height: 37px;
   z-index: 3;
 }
 .chair-back,
 .chair-seat {
   position: absolute;
-  background: #47314B;
+  background: #7B617A;
   border: 2px solid var(--ink);
 }
 .chair-back {
   left: 7px;
   top: 0;
-  width: 26px;
+  width: 28px;
   height: 20px;
-  border-top-color: #96C8D8;
+  border-top-color: #F6B8C6;
+}
+.chair-back::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  height: 3px;
+  background: rgba(255,248,236,0.38);
 }
 .chair-seat {
   left: 2px;
   top: 18px;
-  width: 36px;
+  width: 38px;
   height: 8px;
-  border-top-color: #F4A8B8;
+  border-top-color: #B7DCE6;
 }
 .chair-leg {
   position: absolute;
-  left: 17px;
+  left: 18px;
   top: 25px;
   width: 7px;
-  height: 11px;
+  height: 12px;
   background: var(--ink);
 }
 
 .person {
   position: absolute;
   left: 50%;
-  bottom: 19px;
+  bottom: 20px;
   transform: translateX(-50%);
   width: 34px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 9;
+  z-index: 11;
 }
 .head-wrap {
   position: relative;
@@ -647,25 +806,25 @@ const moodLabel = computed(() => {
   align-items: center;
   justify-content: center;
 }
-.soft-bow {
+.hair-bow {
   position: absolute;
   right: -8px;
   top: -5px;
   width: 15px;
   height: 10px;
 }
-.soft-bow::before,
-.soft-bow::after {
+.hair-bow::before,
+.hair-bow::after {
   content: '';
   position: absolute;
   top: 2px;
   width: 8px;
   height: 7px;
-  background: #F4A8B8;
+  background: #F6B8C6;
   border: 1px solid var(--ink);
 }
-.soft-bow::before { left: 0; transform: skewY(-18deg); }
-.soft-bow::after { right: 0; transform: skewY(18deg); }
+.hair-bow::before { left: 0; transform: skewY(-18deg); }
+.hair-bow::after { right: 0; transform: skewY(18deg); }
 .headphone {
   position: absolute;
   left: -4px;
@@ -683,7 +842,7 @@ const moodLabel = computed(() => {
   top: 5px;
   width: 4px;
   height: 7px;
-  background: #96C8D8;
+  background: #F6B8C6;
   border: 1px solid var(--ink);
 }
 .headphone::before { left: -2px; }
@@ -704,7 +863,7 @@ const moodLabel = computed(() => {
 .hoodie {
   width: 24px;
   height: 12px;
-  background: linear-gradient(90deg, #96C8D8 0 50%, #F4A8B8 51% 100%);
+  background: linear-gradient(90deg, #F6B8C6 0 50%, #B7DCE6 51% 100%);
   border: 2px solid var(--ink);
   margin-top: -3px;
 }
@@ -713,11 +872,11 @@ const moodLabel = computed(() => {
   bottom: 3px;
   width: 5px;
   height: 8px;
-  background: #96C8D8;
+  background: #F6B8C6;
   border: 2px solid var(--ink);
 }
 .sleeve.left { left: 2px; transform-origin: top center; }
-.sleeve.right { right: 2px; transform-origin: top center; background: #F4A8B8; }
+.sleeve.right { right: 2px; transform-origin: top center; background: #B7DCE6; }
 .person.typing { animation: playerBob 0.55s ease-in-out infinite; }
 .person.typing .sleeve.left { animation: tapLeft 0.42s ease-in-out infinite; }
 .person.typing .sleeve.right { animation: tapRight 0.42s ease-in-out infinite 0.16s; }
@@ -749,37 +908,47 @@ const moodLabel = computed(() => {
   45% { transform: rotate(24deg) translateY(-4px); }
 }
 
-.desk-charm {
+.plush {
   position: absolute;
-  left: 14px;
+  left: 13px;
   bottom: 7px;
-  width: 28px;
-  height: 30px;
+  width: 29px;
+  height: 31px;
   z-index: 5;
-  animation: charmBob 2.2s ease-in-out infinite;
+  animation: plushBob 2.2s ease-in-out infinite;
 }
-.charm-face {
+.plush-head {
   position: absolute;
-  left: 4px;
-  bottom: 0;
-  width: 21px;
-  height: 22px;
-  background: var(--bg-card);
+  left: 5px;
+  top: 0;
+  width: 18px;
+  height: 17px;
+  background: #FFF8EC;
   border: 2px solid var(--ink);
   border-radius: 5px;
 }
-.charm-face::before,
-.charm-face::after {
+.plush-head::before,
+.plush-head::after {
   content: '';
   position: absolute;
-  top: 8px;
+  top: 7px;
   width: 3px;
   height: 3px;
   background: var(--ink);
 }
-.charm-face::before { left: 5px; }
-.charm-face::after { right: 5px; }
-.charm-spark {
+.plush-head::before { left: 4px; }
+.plush-head::after { right: 4px; }
+.plush-body {
+  position: absolute;
+  left: 3px;
+  bottom: 0;
+  width: 23px;
+  height: 16px;
+  background: #F6B8C6;
+  border: 2px solid var(--ink);
+  border-radius: 4px 4px 7px 7px;
+}
+.plush-spark {
   position: absolute;
   right: -2px;
   top: 1px;
@@ -787,19 +956,54 @@ const moodLabel = computed(() => {
   font-family: var(--font-pix);
   font-size: 7px;
 }
-@keyframes charmBob {
+@keyframes plushBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
+}
+
+.floor-bow {
+  position: absolute;
+  right: 15px;
+  bottom: 11px;
+  width: 29px;
+  height: 20px;
+  z-index: 5;
+}
+.knot {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  background: #F6B8C6;
+  border: 2px solid var(--ink);
+  z-index: 2;
+}
+.tail {
+  position: absolute;
+  top: 3px;
+  width: 15px;
+  height: 12px;
+  background: #F6B8C6;
+  border: 2px solid var(--ink);
+}
+.tail.left {
+  left: 0;
+  clip-path: polygon(0 0, 100% 50%, 0 100%, 20% 50%);
+}
+.tail.right {
+  right: 0;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%, 80% 50%);
 }
 
 .note-out {
   position: absolute;
   left: 54%;
-  top: 39px;
+  top: 40px;
   font-family: var(--font-pix);
   font-size: 17px;
   color: var(--orange-d);
-  z-index: 12;
+  z-index: 13;
   animation: noteFloat 1.5s ease-in-out infinite;
 }
 @keyframes noteFloat {
@@ -818,7 +1022,7 @@ const moodLabel = computed(() => {
   color: var(--bg-card);
   padding: 2px 6px;
   letter-spacing: 1px;
-  z-index: 13;
+  z-index: 14;
 }
 .nameplate {
   position: absolute;
@@ -828,7 +1032,7 @@ const moodLabel = computed(() => {
   display: flex;
   justify-content: center;
   pointer-events: none;
-  z-index: 14;
+  z-index: 15;
 }
 .nameplate span {
   font-family: var(--font-pix);
@@ -853,7 +1057,7 @@ const moodLabel = computed(() => {
   box-shadow: 2px 2px 0 var(--ink);
   padding: 3px 8px;
   font-size: 13px;
-  z-index: 14;
+  z-index: 15;
 }
 .status::after {
   content: '';
@@ -872,7 +1076,7 @@ const moodLabel = computed(() => {
   top: -16px;
   right: -8px;
   font-size: 24px;
-  z-index: 16;
+  z-index: 17;
   pointer-events: none;
   animation: pop 0.4s ease-out, float 1.6s ease-in-out 0.4s infinite;
 }
@@ -881,13 +1085,13 @@ const moodLabel = computed(() => {
   left: 50%;
   top: -28px;
   transform: translateX(-50%);
-  background: #F4A8B8;
+  background: #F6B8C6;
   border: 2px solid var(--ink);
   box-shadow: 2px 2px 0 var(--ink);
   font-size: 11px;
   padding: 2px 6px;
   white-space: nowrap;
-  z-index: 15;
+  z-index: 16;
   animation: pop 0.3s ease-out;
 }
 @keyframes pop {
