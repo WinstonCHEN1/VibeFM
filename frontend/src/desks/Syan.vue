@@ -21,9 +21,9 @@ const headphone = computed(() => /🎧|listen|听歌|music|fm|歌|耳机|live/.t
 
 const moodLabel = computed(() => {
   if (offline.value) return 'soft off'
-  if (inBar.value) return '去听歌啦'
-  if (sleeping.value) return '粉色充电'
-  if (coffee.value) return '甜甜补给'
+  if (inBar.value) return 'drink off'
+  if (sleeping.value) return '已安眠'
+  if (coffee.value) return '瑞幸黑金鹿'
   if (headphone.value) return 'live ready'
   return props.text || 'pink setup'
 })
