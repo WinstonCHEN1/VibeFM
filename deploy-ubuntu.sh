@@ -28,17 +28,37 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
+# 代理：传 PROXY=http://127.0.0.1:7890 进来，或脚本自动沿用已 export 的 https_proxy。
+# 国内直连 download.docker.com 会被 reset，挂代理时务必带上。
+PROXY="${PROXY:-${https_proxy:-$http_proxy}}"
+CURL_PROXY=""
+if [ -n "$PROXY" ]; then
+  echo "    使用代理：$PROXY"
+  export http_proxy="$PROXY" https_proxy="$PROXY"
+  CURL_PROXY="-x $PROXY"
+fi
+# 让 sudo/apt 也能看到代理（apt 默认不读 shell 的代理变量）
+APT="apt-get"
+if [ -n "$PROXY" ]; then
+  APT="apt-get -o Acquire::http::Proxy=$PROXY -o Acquire::https::Proxy=$PROXY"
+fi
+
 echo "==> [1/5] 装 docker engine + compose plugin"
 if ! command -v docker >/dev/null 2>&1; then
-  apt-get update -y
-  apt-get install -y ca-certificates curl gnupg git
+  $APT update -y
+  $APT install -y ca-certificates curl gnupg git
 
-  # 添加 Docker 官方 GPG key
+  # 添加 Docker 官方 GPG key（带代理拉取，避免空文件）
   install -m 0755 -d /etc/apt/keyrings
-  if [ ! -f /etc/apt/keyrings/docker.gpg ]; then
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    chmod a+r /etc/apt/keyrings/docker.gpg
+  rm -f /etc/apt/keyrings/docker.gpg
+  curl -fsSL $CURL_PROXY https://download.docker.com/linux/ubuntu/gpg \
+    | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  chmod a+r /etc/apt/keyrings/docker.gpg
+  if [ ! -s /etc/apt/keyrings/docker.gpg ]; then
+    echo "❌ Docker GPG key 拉取失败（文件为空）。"
+    echo "   多半是没走代理被 reset。请先 export 代理或传 PROXY=，再重跑："
+    echo "   PROXY=http://127.0.0.1:7890 sudo -E bash $0 $DOMAIN"
+    exit 1
   fi
 
   # 识别发行版代号（Ubuntu 用 ubuntu 源；Debian 系自动回退）
@@ -53,13 +73,13 @@ if ! command -v docker >/dev/null 2>&1; then
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${REPO_OS} ${CODENAME} stable" \
     > /etc/apt/sources.list.d/docker.list
 
-  apt-get update -y
-  apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  $APT update -y
+  $APT install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   systemctl enable --now docker
 else
   echo "    docker 已存在，跳过"
   # 确保 git 在
-  command -v git >/dev/null 2>&1 || { apt-get update -y && apt-get install -y git; }
+  command -v git >/dev/null 2>&1 || { $APT update -y && $APT install -y git; }
 fi
 
 echo "==> [2/5] 防火墙开 80/443"
@@ -111,6 +131,24 @@ fi
 if ! grep -q "^DOMAIN=" .env; then
   echo "    .env 缺少 DOMAIN，请加 DOMAIN=fm.example.com"
   exit 1
+fi
+
+# 如果有代理：给 Docker daemon 配镜像加速 + 给 build/pull 走代理
+if [ -n "$PROXY" ]; then
+  echo "    配置 Docker 代理（拉镜像用）"
+  mkdir -p /etc/docker
+  cat > /etc/docker/daemon.json <<EOF
+{"registry-mirrors":["https://mirror.ccs.tencentyun.com"]}
+EOF
+  mkdir -p /etc/systemd/system/docker.service.d
+  cat > /etc/systemd/system/docker.service.d/proxy.conf <<EOF
+[Service]
+Environment="HTTP_PROXY=$PROXY"
+Environment="HTTPS_PROXY=$PROXY"
+Environment="NO_PROXY=localhost,127.0.0.1"
+EOF
+  systemctl daemon-reload
+  systemctl restart docker
 fi
 
 echo "==> [5/5] 起服务（含 Caddy 自动 HTTPS）"
