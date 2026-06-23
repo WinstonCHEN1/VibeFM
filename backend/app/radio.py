@@ -47,12 +47,27 @@ class Radio:
                 print(f"[radio] fallback pool loaded: {len(self._fallback_pool)} tracks")
             except Exception as e:
                 print("[radio] fallback playlist preload failed:", e)
-        # 启动时若没人在线就冻结
+        # 启动时先尝试从 redis 恢复上次的当前曲目，避免重启后 current 为空
+        try:
+            raw = await self.redis.get(STATE_KEY)
+            if raw:
+                self.current = json.loads(raw)
+        except Exception as e:
+            print("[radio] restore current from redis failed:", e)
+
+        # 韧性兜底：无论是否有人在线，只要没有当前曲目（含 url 失效）就先抽一首垫着，
+        # 防止"重启 + 唯一用户刷新去重导致 thaw 不触发"造成的卡死空播。
+        has_playable = bool(self.current and self.current.get("url"))
+        if not has_playable:
+            try:
+                await self.play_next(reason="boot")
+            except Exception as e:
+                print("[radio] boot play_next failed:", e)
+
+        # 启动时若没人在线则冻结（current 已就绪，等有人来 thaw 续播即可）
         if hub.online_count() == 0:
-            self.frozen = True
+            await self.freeze()
             print("[radio] no listeners, frozen at boot")
-        else:
-            await self.play_next(reason="boot")
 
     async def stop(self) -> None:
         if self.scheduler.running:
